@@ -1,4 +1,4 @@
-# CGSSAssetsDownloader ver1.1。
+# CGSSAssetsDownloader ver1.1
 欢迎使用CGSSAssetsDownloader ver1.1。
 
 ## 更新历史
@@ -15,7 +15,7 @@
 原理：先从游戏的服务器下载被压缩编码的资源文件，再通过解压或解码获得。
 
 ## 用法
-在此目录下运行cmd命令行控制台，输入“CGSSAssetsDownloader <版本号> <选项>”回车，
+在此工具根目录下运行cmd命令行控制台，执行命令“CGSSAssetsDownloader <版本号> <选项>”，
 
 <选项>可以是bgm, live, card。
 

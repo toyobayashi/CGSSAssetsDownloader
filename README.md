@@ -17,9 +17,13 @@
 原理：先从游戏的服务器下载被压缩编码的资源文件，再通过解压或解码获得。
 
 ## 用法
-在此工具根目录下运行cmd命令行控制台，执行命令“CGSSAssetsDownloader <版本号> <选项>”，
+在此工具根目录下运行cmd命令行控制台，执行命令
+```Bash
+CGSSAssetsDownloader [版本号] [选项]
+```
+[选项]可以是bgm, live, card。
 
-<选项>可以是bgm, live, card。
+若缺省选项参数，则只会下载对应版本的资源表。
 
 如果不知道版本号，可以访问 https://starlight.kirara.ca/api/v1/info 查询。
 

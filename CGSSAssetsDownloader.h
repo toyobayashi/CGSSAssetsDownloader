@@ -6,3 +6,15 @@
 #include <string>
 #include <fstream>
 
+using namespace std;
+
+class Downloader {
+private:
+	string res_ver;
+	string type;
+public:
+	Downloader(string, string);
+	void check_manifest();
+	void download_manifest();
+	void download_asset();
+};

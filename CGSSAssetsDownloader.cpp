@@ -1,10 +1,6 @@
 #include "CGSSAssetsDownloader.h"
 
-using namespace std;
-
 string update_list = "";
-string res_ver;
-string type;
 
 void exec_sync(string cmd) {
 	system(cmd.c_str());
@@ -86,32 +82,51 @@ long get_file_size(const char* strFileName) {
 	return size;
 }
 
-void download_manifest(string resource_version) {
+Downloader::Downloader(string v, string t) {
+	res_ver = v;
+	type = t;
+}
+
+void Downloader::check_manifest() {
+	fstream _file;
+	string fileName = "data\\manifest_" + res_ver + ".db";
+	_file.open(fileName.c_str(), ios::in);
+
+	if (!_file) {
+		printf("Start download manifest.\n");
+		download_manifest();
+	}
+	else {
+		printf("Manifest file exists.\n");
+	}
+}
+
+void Downloader::download_manifest() {
 	string url, ssd;
 	exec_sync("md data");
-	exec_sync("tool\\wget\\wget -c -O data\\manifest_" + resource_version + " http://storage.game.starlight-stage.jp/dl/" + res_ver + "/manifests/Android_AHigh_SHigh");
+	exec_sync("tool\\wget\\wget -c -O data\\manifest_" + res_ver + " http://storage.game.starlight-stage.jp/dl/" + res_ver + "/manifests/Android_AHigh_SHigh");
 
-	string lz4file = "data\\manifest_" + resource_version;
+	string lz4file = "data\\manifest_" + res_ver;
 	long size = get_file_size(lz4file.c_str());
 	if (size < 1) {
 		printf("Failed.\n");
-		exec_sync("del data\\manifest_" + resource_version + " /f /s /q");
+		exec_sync("del data\\manifest_" + res_ver + " /f /s /q");
 		exit(0);
 	}
-	exec_sync("tool\\SSDecompress\\SSDecompress.exe data\\manifest_" + resource_version);
+	exec_sync("tool\\SSDecompress\\SSDecompress.exe data\\manifest_" + res_ver);
 	exec_sync("del data\\*.");
 	exec_sync("ren data\\*.unity3d *.db");
 	printf("Successfully download manifest.\n");
 }
 
-void download_asset (string resource_version, string type) {
+void Downloader::download_asset() {
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int rc;
 	char *sql;
 	const char* data = "Callback function called";
 
-	string sqlfile = "data\\manifest_" + resource_version + ".db";
+	string sqlfile = "data\\manifest_" + res_ver + ".db";
 	rc = sqlite3_open(sqlfile.c_str(), &db);
 	if (rc) {
 		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
@@ -138,7 +153,7 @@ void download_asset (string resource_version, string type) {
 			bgm_txt.close();
 			printf("===========  Update bgm  ===========\n\n");
 			printf(update_list.c_str());
-			printf("\n\n====================================");
+			printf("\n====================================");
 		}
 	}
 	else if (type == "live") {
@@ -158,7 +173,7 @@ void download_asset (string resource_version, string type) {
 			live_txt.close();
 			printf("===========  Update live  ===========\n\n");
 			printf(update_list.c_str());
-			printf("\n\n=====================================");
+			printf("\n=====================================");
 		}
 	}
 	else if (type == "card") {
@@ -178,29 +193,24 @@ void download_asset (string resource_version, string type) {
 			live_txt.close();
 			printf("===========  Update live  ===========\n\n");
 			printf(update_list.c_str());
-			printf("\n\n=====================================");
+			printf("\n=====================================");
 		}
 	}
 
 	sqlite3_close(db);
 }
-void check_manifest(string resource_version) {
-	fstream _file;
-	string fileName = "data\\manifest_" + res_ver + ".db";
-	_file.open(fileName.c_str(), ios::in);
 
-	if (!_file) {
-		printf("Start download manifest.\n");
-		download_manifest(resource_version);
+int main(int argc, char* argv[]) {
+	if (argc == 2) {
+		Downloader downloader(argv[1], "");
+		downloader.check_manifest();
+	}
+	else if (argc == 3) {
+		Downloader downloader(argv[1], argv[2]);
+		downloader.check_manifest();
+		downloader.download_asset();
 	}
 	else {
-		printf("Manifest file exists.\n");
-	}
-}
-
-int main(int argc, char* argv[])
-{
-	if (argc == 1 || argc > 3) {
 		printf("CGSSAssetsDownloader ver 1.1\n\n");
 		printf("Usage: CGSSAssetsDownloader <resource_version> [bgm | live | card]\n");
 		printf("Example: CGSSAssetsDownloader 10027700 bgm\n");
@@ -209,16 +219,6 @@ int main(int argc, char* argv[])
 		printf("By tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
 		system("pause");
 		exit(0);
-	}
-	else if (argc == 2) {
-		res_ver = argv[1];
-		check_manifest(res_ver);
-	}
-	else if (argc == 3) {
-		res_ver = argv[1];
-		type = argv[2];
-		check_manifest(res_ver);
-		download_asset(res_ver, type);
 	}
 	return 0;
 }

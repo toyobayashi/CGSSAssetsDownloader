@@ -1,14 +1,17 @@
-# CGSSAssetsDownloader ver1.1
-欢迎使用CGSSAssetsDownloader ver1.1。
+# CGSSAssetsDownloader
+欢迎使用CGSSAssetsDownloader。
 
-下载 [CGSSAssetsDownloader ver1.1](https://github.com/MoebutagataShiozakana/CGSSAssetsDownloader/releases)
+下载 [CGSSAssetsDownloader](https://github.com/MoebutagataShiozakana/CGSSAssetsDownloader/releases)
 
 ## 更新历史
-1.1
+v1.1.1
+1. 代码改造，功能上和1.1没有区别。
+
+v1.1
 1. 从CGSSMusicDownloader更名为CGSSAssetsDownloader，新增下载卡片背景unity3d功能
 2. 优化下载逻辑，修复禁止访问的问题
 
-1.0
+v1.0
 1. 由于游戏服务器设置了访问权限，已失效
 
 ## 说明

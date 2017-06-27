@@ -17,4 +17,5 @@ public:
 	void check_manifest();
 	void download_manifest();
 	void download_asset();
+	void download_single(string);
 };

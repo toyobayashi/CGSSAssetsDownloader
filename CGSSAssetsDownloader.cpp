@@ -136,9 +136,9 @@ void download_asset (string resource_version, string type) {
 			bgm_txt.open("log\\bgm.txt");
 			bgm_txt << update_list;
 			bgm_txt.close();
-			printf("===========  Update bgm  ===========");
+			printf("===========  Update bgm  ===========\n\n");
 			printf(update_list.c_str());
-			printf("====================================");
+			printf("\n\n====================================");
 		}
 	}
 	else if (type == "live") {
@@ -156,9 +156,9 @@ void download_asset (string resource_version, string type) {
 			live_txt.open("log\\live.txt");
 			live_txt << update_list;
 			live_txt.close();
-			printf("===========  Update live  ===========");
+			printf("===========  Update live  ===========\n\n");
 			printf(update_list.c_str());
-			printf("=====================================");
+			printf("\n\n=====================================");
 		}
 	}
 	else if (type == "card") {
@@ -176,9 +176,9 @@ void download_asset (string resource_version, string type) {
 			live_txt.open("log\\card.txt");
 			live_txt << update_list;
 			live_txt.close();
-			printf("===========  Update live  ===========");
+			printf("===========  Update live  ===========\n\n");
 			printf(update_list.c_str());
-			printf("=====================================");
+			printf("\n\n=====================================");
 		}
 	}
 

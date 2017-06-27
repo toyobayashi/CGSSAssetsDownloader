@@ -211,12 +211,12 @@ int main(int argc, char* argv[]) {
 		downloader.download_asset();
 	}
 	else {
-		printf("CGSSAssetsDownloader ver 1.1\n\n");
+		printf("CGSSAssetsDownloader ver 1.1.1\n\n");
 		printf("Usage: CGSSAssetsDownloader <resource_version> [bgm | live | card]\n");
 		printf("Example: CGSSAssetsDownloader 10027700 bgm\n");
 		printf("If you don't know the <resource_version>, try to visit\nhttps://starlight.kirara.ca/api/v1/info\n");
 		printf("\n");
-		printf("By tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
+		printf("By tieba@Ã†ÃŸÃžy_Nyanko, weibo@TTPTs\n\n");
 		system("pause");
 		exit(0);
 	}

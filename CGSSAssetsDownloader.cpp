@@ -6,6 +6,36 @@ void exec_sync(string cmd) {
 	system(cmd.c_str());
 }
 
+static int exist(void *data, int argc, char **argv, char **azColName) {
+	Downloader::exists++;
+	return 0;
+}
+
+static int sum_number(void *data, int argc, char **argv, char **azColName) {
+	string name(argv[1]);
+	string type = (char*)data;
+
+	fstream _file;
+	string fileName;
+	if (type == "bgm" || type == "live") {
+		fileName = type + "\\" + name + ".wav";
+	}
+	else if (type == "card" || type == "icon") {
+		fileName = type + "\\" + name + ".unity3d";
+	}
+	else if (type == "score") {
+		fileName = type + "\\" + name + ".bdb";
+	}
+	
+	_file.open(fileName.c_str(), ios::in);
+
+	if (!_file) {
+		Downloader::max++;
+	}
+	_file.close();
+	return 0;
+}
+
 static int get_b(void *data, int argc, char **argv, char **azColName) {
 	string url(argv[0]);
 	string name(argv[1]);
@@ -17,14 +47,15 @@ static int get_b(void *data, int argc, char **argv, char **azColName) {
 	if (!_file) {
 		update_list += name;
 		update_list += "\n";
-		printf(name.c_str());
-		printf("\n");
+		exec_sync("cls");
+		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./bgm/" + name + ".acb");
 		exec_sync("tool\\DereTore.ACB\\DereTore.ACB.Test.exe bgm\\" + name + ".acb");
 		exec_sync("tool\\HCADecoder\\hca.exe -v 1.0 -m 16 -l 0 -a F27E3B22 -b 00003657 bgm\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".hca");
 		exec_sync("move bgm\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".wav bgm\\");
 		exec_sync("rd bgm\\_deretore_acb_extract_" + name + ".acb /s /q");
 		exec_sync("del bgm\\" + name + ".acb");
+		Downloader::current++;
 	}
 	_file.close();
 	return 0;
@@ -41,14 +72,15 @@ static int get_l(void *data, int argc, char **argv, char **azColName) {
 	if (!_file) {
 		update_list += name;
 		update_list += "\n";
-		printf(name.c_str());
-		printf("\n");
+		exec_sync("cls");
+		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./live/" + name + ".acb");
 		exec_sync("tool\\DereTore.ACB\\DereTore.ACB.Test.exe live\\" + name + ".acb");
 		exec_sync("tool\\HCADecoder\\hca.exe -v 1.0 -m 16 -l 0 -a F27E3B22 -b 00003657 live\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".hca");
 		exec_sync("move live\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".wav live\\");
 		exec_sync("rd live\\_deretore_acb_extract_" + name + ".acb /s /q");
 		exec_sync("del live\\" + name + ".acb");
+		Downloader::current++;
 	}
 	_file.close();
 	return 0;
@@ -65,11 +97,12 @@ static int get_c(void *data, int argc, char **argv, char **azColName) {
 	if (!_file) {
 		update_list += name;
 		update_list += "\n";
-		printf(name.c_str());
-		printf("\n");
+		exec_sync("cls");
+		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./card/" + name);
 		exec_sync("tool\\SSDecompress\\SSDecompress.exe card\\" + name);
 		exec_sync("del card\\" + name);
+		Downloader::current++;
 	}
 	_file.close();
 	return 0;
@@ -86,11 +119,12 @@ static int get_i(void *data, int argc, char **argv, char **azColName) {
 	if (!_file) {
 		update_list += name;
 		update_list += "\n";
-		printf(name.c_str());
-		printf("\n");
+		exec_sync("cls");
+		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./icon/" + name);
 		exec_sync("tool\\SSDecompress\\SSDecompress.exe icon\\" + name);
 		exec_sync("del icon\\" + name);
+		Downloader::current++;
 	}
 	_file.close();
 	return 0;
@@ -107,12 +141,13 @@ static int get_s(void *data, int argc, char **argv, char **azColName) {
 	if (!_file) {
 		update_list += name;
 		update_list += "\n";
-		printf(name.c_str());
-		printf("\n");
+		exec_sync("cls");
+		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./score/" + name);
 		exec_sync("tool\\SSDecompress\\SSDecompress.exe score\\" + name);
 		exec_sync("ren score\\" + name + ".unity3d " + name + ".bdb");
 		exec_sync("del score\\" + name);
+		Downloader::current++;
 	}
 	_file.close();
 	return 0;
@@ -128,9 +163,15 @@ static int get_acb(void *data, int argc, char **argv, char **azColName) {
 
 	if (!_file) {
 		printf(name.c_str());
-		printf("\n");
+		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
 		exec_sync("ren dl\\" + name + " " + name + ".acb");
+		exec_sync("cls");
+		printf("%s Completed.\n\n", name.c_str());
+	}
+	else {
+		exec_sync("cls");
+		printf("File exists.\n\n");
 	}
 	_file.close();
 	return 0;
@@ -146,10 +187,16 @@ static int get_unity3d(void *data, int argc, char **argv, char **azColName) {
 
 	if (!_file) {
 		printf(name.c_str());
-		printf("\n");
+		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
 		exec_sync("tool\\SSDecompress\\SSDecompress.exe dl\\" + name);
 		exec_sync("del dl\\" + name);
+		exec_sync("cls");
+		printf("%s Completed.\n\n", name.c_str());
+	}
+	else {
+		exec_sync("cls");
+		printf("File exists.\n\n");
 	}
 	_file.close();
 	return 0;
@@ -165,11 +212,17 @@ static int get_bdb(void *data, int argc, char **argv, char **azColName) {
 
 	if (!_file) {
 		printf(name.c_str());
-		printf("\n");
+		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
 		exec_sync("tool\\SSDecompress\\SSDecompress.exe dl\\" + name);
 		exec_sync("ren dl\\" + name + ".unity3d " + name + ".bdb");
 		exec_sync("del dl\\" + name);
+		exec_sync("cls");
+		printf("%s Completed.\n\n", name.c_str());
+	}
+	else {
+		exec_sync("cls");
+		printf("File exists.\n\n");
 	}
 	_file.close();
 	return 0;
@@ -185,11 +238,17 @@ static int get_mdb(void *data, int argc, char **argv, char **azColName) {
 
 	if (!_file) {
 		printf(name.c_str());
-		printf("\n");
+		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
 		exec_sync("tool\\SSDecompress\\SSDecompress.exe dl\\" + name);
 		exec_sync("ren dl\\" + name + ".unity3d " + name + ".mdb");
 		exec_sync("del dl\\" + name);
+		exec_sync("cls");
+		printf("%s Completed.\n\n", name.c_str());
+	}
+	else {
+		exec_sync("cls");
+		printf("File exists.\n\n");
 	}
 	_file.close();
 	return 0;
@@ -252,7 +311,7 @@ void Downloader::download_asset() {
 	char *zErrMsg = 0;
 	int rc;
 	char *sql;
-	const char* data = "Callback function called";
+	const char* data = type.c_str();
 
 	string sqlfile = "data\\manifest_" + res_ver + ".db";
 	rc = sqlite3_open(sqlfile.c_str(), &db);
@@ -267,6 +326,7 @@ void Downloader::download_asset() {
 	if (type == "bgm") {
 		exec_sync("md bgm");
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/b/'||hash AS url, REPLACE(REPLACE(name,'b/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'b/%acb'";
+		rc = sqlite3_exec(db, sql, sum_number, (void*)data, &zErrMsg);
 		rc = sqlite3_exec(db, sql, get_b, (void*)data, &zErrMsg);
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -279,6 +339,8 @@ void Downloader::download_asset() {
 			bgm_txt.open("log\\bgm.txt");
 			bgm_txt << update_list;
 			bgm_txt.close();
+			exec_sync("cls");
+			printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
 			printf("===========  Update bgm  ===========\n\n");
 			printf(update_list.c_str());
 			printf("\n====================================");
@@ -287,6 +349,7 @@ void Downloader::download_asset() {
 	else if (type == "live") {
 		exec_sync("md live");
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/l/'||hash AS url, REPLACE(REPLACE(name,'l/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'l/%acb'";
+		rc = sqlite3_exec(db, sql, sum_number, (void*)data, &zErrMsg);
 		rc = sqlite3_exec(db, sql, get_l, (void*)data, &zErrMsg);
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -299,6 +362,8 @@ void Downloader::download_asset() {
 			live_txt.open("log\\live.txt");
 			live_txt << update_list;
 			live_txt.close();
+			exec_sync("cls");
+			printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
 			printf("===========  Update live  ===========\n\n");
 			printf(update_list.c_str());
 			printf("\n=====================================");
@@ -307,6 +372,7 @@ void Downloader::download_asset() {
 	else if (type == "card") {
 		exec_sync("md card");
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card_bg_______.unity3d'";
+		rc = sqlite3_exec(db, sql, sum_number, (void*)data, &zErrMsg);
 		rc = sqlite3_exec(db, sql, get_c, (void*)data, &zErrMsg);
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -319,6 +385,8 @@ void Downloader::download_asset() {
 			live_txt.open("log\\card.txt");
 			live_txt << update_list;
 			live_txt.close();
+			exec_sync("cls");
+			printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
 			printf("===========  Update live  ===========\n\n");
 			printf(update_list.c_str());
 			printf("\n=====================================");
@@ -327,6 +395,7 @@ void Downloader::download_asset() {
 	else if (type == "icon") {
 		exec_sync("md icon");
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card________m.unity3d'";
+		rc = sqlite3_exec(db, sql, sum_number, (void*)data, &zErrMsg);
 		rc = sqlite3_exec(db, sql, get_i, (void*)data, &zErrMsg);
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -339,6 +408,8 @@ void Downloader::download_asset() {
 			icon_txt.open("log\\icon.txt");
 			icon_txt << update_list;
 			icon_txt.close();
+			exec_sync("cls");
+			printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
 			printf("===========  Update icon  ===========\n\n");
 			printf(update_list.c_str());
 			printf("\n=====================================");
@@ -347,6 +418,7 @@ void Downloader::download_asset() {
 	else if (type == "score") {
 		exec_sync("md score");
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/Generic/'||hash AS url, REPLACE(name,'.bdb','') AS filename FROM manifests WHERE name LIKE 'musicscores%bdb'";
+		rc = sqlite3_exec(db, sql, sum_number, (void*)data, &zErrMsg);
 		rc = sqlite3_exec(db, sql, get_s, (void*)data, &zErrMsg);
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -359,6 +431,8 @@ void Downloader::download_asset() {
 			score_txt.open("log\\score.txt");
 			score_txt << update_list;
 			score_txt.close();
+			exec_sync("cls");
+			printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
 			printf("===========  Update score  ===========\n\n");
 			printf(update_list.c_str());
 			printf("\n=====================================");
@@ -372,7 +446,7 @@ void Downloader::download_single(string file) {
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int rc;
-	const char* data = "Callback function called";
+	const char* data = file.c_str();
 
 	string sqlfile = "data\\manifest_" + res_ver + ".db";
 	rc = sqlite3_open(sqlfile.c_str(), &db);
@@ -389,32 +463,67 @@ void Downloader::download_single(string file) {
 	if (suffixStr == "acb") {
 		string acb_type = file.substr(0,1);
 		string sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/" + acb_type + "/'||hash AS url, REPLACE(REPLACE(name,'" + acb_type + "/',''),'.acb','') AS filename FROM manifests WHERE name='" + file + "'";
-		rc = sqlite3_exec(db, sql.c_str(), get_acb, (void*)data, &zErrMsg);
+		rc = sqlite3_exec(db, sql.c_str(), exist, (void*)data, &zErrMsg);
+		if (Downloader::exists != 0) {
+			rc = sqlite3_exec(db, sql.c_str(), get_acb, (void*)data, &zErrMsg);
+		}
+		else {
+			exec_sync("cls");
+			printf("%s not found.\n\n", file.c_str());
+		}
 		is_db_ok(rc, zErrMsg);
 	}
 	else if (suffixStr == "unity3d") {
 		string sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name='" + file + "'";
-		rc = sqlite3_exec(db, sql.c_str(), get_unity3d, (void*)data, &zErrMsg);
+		rc = sqlite3_exec(db, sql.c_str(), exist, (void*)data, &zErrMsg);
+		if (Downloader::exists != 0) {
+			rc = sqlite3_exec(db, sql.c_str(), get_unity3d, (void*)data, &zErrMsg);
+		}
+		else {
+			exec_sync("cls");
+			printf("%s not found.\n\n", file.c_str());
+		}
 		is_db_ok(rc, zErrMsg);
 	}
 	else if (suffixStr == "bdb") {
 		string sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/Generic/'||hash AS url, REPLACE(name,'.bdb','') AS filename FROM manifests WHERE name='" + file + "'";
-		rc = sqlite3_exec(db, sql.c_str(), get_bdb, (void*)data, &zErrMsg);
+		rc = sqlite3_exec(db, sql.c_str(), exist, (void*)data, &zErrMsg);
+		if (Downloader::exists != 0) {
+			rc = sqlite3_exec(db, sql.c_str(), get_bdb, (void*)data, &zErrMsg);
+		}
+		else {
+			exec_sync("cls");
+			printf("%s not found.\n\n", file.c_str());
+		}
 		is_db_ok(rc, zErrMsg);
 	}
 	else if (suffixStr == "mdb") {
 		string sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/Generic/'||hash AS url, REPLACE(name,'.mdb','') AS filename FROM manifests WHERE name='" + file + "'";
-		rc = sqlite3_exec(db, sql.c_str(), get_mdb, (void*)data, &zErrMsg);
+		rc = sqlite3_exec(db, sql.c_str(), exist, (void*)data, &zErrMsg);
+		if (Downloader::exists != 0) {
+			rc = sqlite3_exec(db, sql.c_str(), get_mdb, (void*)data, &zErrMsg);
+		}
+		else {
+			exec_sync("cls");
+			printf("%s not found.\n\n", file.c_str());
+		}
 		is_db_ok(rc, zErrMsg);
+	}
+	else {
+		exec_sync("cls");
+		printf("File name error.\n\n");
 	}
 }
 
 int main(int argc, char* argv[]) {
+	exec_sync("echo off");
+	exec_sync("cls");
 	if (argc == 2) {
 		Downloader downloader(argv[1], "");
 		downloader.check_manifest();
 	}
 	else if (argc == 3) {
+		exec_sync("echo off");
 		string option = argv[2];
 		if (option == "bgm" || option == "live" || option == "card" || option == "icon" || option == "score") {
 			Downloader downloader(argv[1], argv[2]);
@@ -428,7 +537,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	else {
-		printf("CGSSAssetsDownloader ver 1.2\n\n");
+		printf("CGSSAssetsDownloader ver 1.3\n\n");
 
 		printf("Usage: CGSSAssetsDownloader <resource_version> [option or filename]\n\n");
 
@@ -443,12 +552,11 @@ int main(int argc, char* argv[]) {
 
 		printf("You can use \"DB Browser for SQLite\" open the manifest file in data\\ to browse file names\n\n");
 		printf("Example:\nCGSSAssetsDownloader 10027700 bgm\n");
-		printf("CGSSAssetsDownloader 10028005 gachaselect_30145.unity3d\n");
+		printf("CGSSAssetsDownloader 10028005 gachaselect_30145.unity3d\n\n");
 		
 		printf("By tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
 
 		system("pause");
-		exit(0);
 	}
 	return 0;
 }

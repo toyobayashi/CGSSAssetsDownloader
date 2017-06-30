@@ -1,8 +1,6 @@
 #pragma once
 
 #include "sqlite3.h"
-#include <stdio.h>
-#include <iostream>
 #include <string>
 #include <fstream>
 
@@ -13,9 +11,18 @@ private:
 	string res_ver;
 	string type;
 public:
+	static int current;
+	static int max;
+	static int exists;
+
 	Downloader(string, string);
 	void check_manifest();
 	void download_manifest();
 	void download_asset();
 	void download_single(string);
 };
+
+int Downloader::current = 0;
+int Downloader::max = 0;
+int Downloader::exists = 0;
+

@@ -3,25 +3,6 @@
 
 下载 [CGSSAssetsDownloader](https://github.com/MoebutagataShiozakana/CGSSAssetsDownloader/releases)
 
-## 更新历史
-### v1.3
-1. 优化提示信息的输出
-
-### v1.2
-1. 新增下载图标unity3d文件功能
-2. 新增下载谱面bdb文件功能
-3. 新增单个下载功能
-
-### v1.1.1
-1. 代码改造，功能上和1.1没有区别
-
-### v1.1
-1. 从CGSSMusicDownloader更名为CGSSAssetsDownloader，新增下载卡片背景unity3d功能
-2. 优化下载逻辑，修复禁止访问的问题
-
-### v1.0
-1. 由于游戏服务器设置了访问权限，已失效
-
 ## 说明
 本工具由C++编写，用于下载《偶像大师灰姑娘女孩星光舞台》的游戏资源。本工具借鉴了前代starlight_downloader，现在由于游戏的服务器结构更变导致starlight_downloader不能再继续使用而starlight_downloader的作者也没再更新工具。所以我尝试写了这么个东西。
 

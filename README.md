@@ -11,7 +11,7 @@
 ## 用法
 在此工具根目录下运行cmd命令行控制台，执行命令
 ```Bash
-CGSSAssetsDownloader [版本号] [选项]
+CGSSAssetsDownloader <版本号> [选项]
 ```
 [选项]可以是：
 

@@ -1,8 +1,13 @@
 #pragma once
 
 #include "sqlite3.h"
+#include "lz4.h"
 #include <string>
 #include <fstream>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdio.h>
+#include "clHCA.h"
 
 using namespace std;
 

@@ -6,6 +6,48 @@ void exec_sync(string cmd) {
 	system(cmd.c_str());
 }
 
+long get_file_size(const char* strFileName) {
+	struct _stat info;
+	_stat(strFileName, &info);
+	long size = info.st_size;
+	return size;
+}
+
+void is_db_ok(int &r, char *&errmsg) {
+	if (r != SQLITE_OK) {
+		fprintf(stderr, "SQL error: %s\n", errmsg);
+		sqlite3_free(errmsg);
+		exit(0);
+	}
+}
+
+void hcadec(string hcafile) {
+	unsigned int count = 0;
+	char *filenameOut = NULL;
+	float volume = 1;
+	unsigned int ciphKey1 = 0xF27E3B22;
+	unsigned int ciphKey2 = 0x00003657;
+	int mode = 16;
+	int loop = 0;
+
+	char path[MAX_PATH];
+	if (!(filenameOut&&filenameOut[0])) {
+		strcpy_s(path, sizeof(path), hcafile.c_str());
+		char *d1 = strrchr(path, '\\');
+		char *d2 = strrchr(path, '/');
+		char *e = strrchr(path, '.');
+		if (e&&d1<e&&d2<e)*e = '\0';
+		strcat_s(path, sizeof(path), ".wav");
+		filenameOut = path;
+	}
+
+	printf("Decoding %s...\n", hcafile.c_str());
+	clHCA hca(ciphKey1, ciphKey2);
+	if (!hca.DecodeToWavefile(hcafile.c_str(), filenameOut, volume, mode, loop)) {
+		printf("Error: Decoding failed.\n");
+	}
+}
+
 static int exist(void *data, int argc, char **argv, char **azColName) {
 	Downloader::exists++;
 	return 0;
@@ -50,10 +92,10 @@ static int get_b(void *data, int argc, char **argv, char **azColName) {
 		exec_sync("cls");
 		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./bgm/" + name + ".acb");
-		exec_sync("tool\\DereTore.ACB\\DereTore.ACB.Test.exe bgm\\" + name + ".acb");
-		exec_sync("tool\\HCADecoder\\hca.exe -v 1.0 -m 16 -l 0 -a F27E3B22 -b 00003657 bgm\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".hca");
-		exec_sync("move bgm\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".wav bgm\\");
-		exec_sync("rd bgm\\_deretore_acb_extract_" + name + ".acb /s /q");
+		exec_sync("tool\\AcbUnzip\\AcbUnzip.exe bgm\\" + name + ".acb");
+		hcadec("bgm\\_acb_" + name + ".acb\\" + name + ".hca");
+		exec_sync("move bgm\\_acb_" + name + ".acb\\" + name + ".wav bgm\\");
+		exec_sync("rd bgm\\_acb_" + name + ".acb /s /q");
 		exec_sync("del bgm\\" + name + ".acb");
 		Downloader::current++;
 	}
@@ -75,10 +117,10 @@ static int get_l(void *data, int argc, char **argv, char **azColName) {
 		exec_sync("cls");
 		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./live/" + name + ".acb");
-		exec_sync("tool\\DereTore.ACB\\DereTore.ACB.Test.exe live\\" + name + ".acb");
-		exec_sync("tool\\HCADecoder\\hca.exe -v 1.0 -m 16 -l 0 -a F27E3B22 -b 00003657 live\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".hca");
-		exec_sync("move live\\_deretore_acb_extract_" + name + ".acb\\acb\\awb\\" + name + ".wav live\\");
-		exec_sync("rd live\\_deretore_acb_extract_" + name + ".acb /s /q");
+		exec_sync("tool\\AcbUnzip\\AcbUnzip.exe live\\" + name + ".acb");
+		hcadec("live\\_acb_" + name + ".acb\\" + name + ".hca");
+		exec_sync("move live\\_acb_" + name + ".acb\\" + name + ".wav live\\");
+		exec_sync("rd live\\_acb_" + name + ".acb /s /q");
 		exec_sync("del live\\" + name + ".acb");
 		Downloader::current++;
 	}
@@ -100,7 +142,7 @@ static int get_c(void *data, int argc, char **argv, char **azColName) {
 		exec_sync("cls");
 		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./card/" + name);
-		exec_sync("tool\\SSDecompress\\SSDecompress.exe card\\" + name);
+		lz4dec("card\\" + name, "unity3d");
 		exec_sync("del card\\" + name);
 		Downloader::current++;
 	}
@@ -122,7 +164,7 @@ static int get_i(void *data, int argc, char **argv, char **azColName) {
 		exec_sync("cls");
 		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./icon/" + name);
-		exec_sync("tool\\SSDecompress\\SSDecompress.exe icon\\" + name);
+		lz4dec("icon\\" + name, "unity3d");
 		exec_sync("del icon\\" + name);
 		Downloader::current++;
 	}
@@ -144,8 +186,7 @@ static int get_s(void *data, int argc, char **argv, char **azColName) {
 		exec_sync("cls");
 		printf("Completed:\t%d/%d\nDownloading:\t%s\n\n", Downloader::current, Downloader::max, name.c_str());
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./score/" + name);
-		exec_sync("tool\\SSDecompress\\SSDecompress.exe score\\" + name);
-		exec_sync("ren score\\" + name + ".unity3d " + name + ".bdb");
+		lz4dec("score\\" + name, "bdb");
 		exec_sync("del score\\" + name);
 		Downloader::current++;
 	}
@@ -189,7 +230,7 @@ static int get_unity3d(void *data, int argc, char **argv, char **azColName) {
 		printf(name.c_str());
 		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
-		exec_sync("tool\\SSDecompress\\SSDecompress.exe dl\\" + name);
+		lz4dec("dl\\" + name, "unity3d");
 		exec_sync("del dl\\" + name);
 		exec_sync("cls");
 		printf("%s Completed.\n\n", name.c_str());
@@ -214,8 +255,7 @@ static int get_bdb(void *data, int argc, char **argv, char **azColName) {
 		printf(name.c_str());
 		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
-		exec_sync("tool\\SSDecompress\\SSDecompress.exe dl\\" + name);
-		exec_sync("ren dl\\" + name + ".unity3d " + name + ".bdb");
+		lz4dec("dl\\" + name, "bdb");
 		exec_sync("del dl\\" + name);
 		exec_sync("cls");
 		printf("%s Completed.\n\n", name.c_str());
@@ -240,8 +280,7 @@ static int get_mdb(void *data, int argc, char **argv, char **azColName) {
 		printf(name.c_str());
 		printf("\n\n");
 		exec_sync("tool\\wget\\wget -c " + url + " -O " + "./dl/" + name);
-		exec_sync("tool\\SSDecompress\\SSDecompress.exe dl\\" + name);
-		exec_sync("ren dl\\" + name + ".unity3d " + name + ".mdb");
+		lz4dec("dl\\" + name, "mdb");
 		exec_sync("del dl\\" + name);
 		exec_sync("cls");
 		printf("%s Completed.\n\n", name.c_str());
@@ -252,21 +291,6 @@ static int get_mdb(void *data, int argc, char **argv, char **azColName) {
 	}
 	_file.close();
 	return 0;
-}
-
-long get_file_size(const char* strFileName) {
-	struct _stat info;
-	_stat(strFileName, &info);
-	long size = info.st_size;
-	return size;
-}
-
-void is_db_ok(int &r, char *&errmsg) {
-	if (r != SQLITE_OK) {
-		fprintf(stderr, "SQL error: %s\n", errmsg);
-		sqlite3_free(errmsg);
-		exit(0);
-	}
 }
 
 Downloader::Downloader(string v, string t) {
@@ -300,9 +324,8 @@ void Downloader::download_manifest() {
 		exec_sync("del data\\manifest_" + res_ver + " /f /s /q");
 		exit(0);
 	}
-	exec_sync("tool\\SSDecompress\\SSDecompress.exe data\\manifest_" + res_ver);
-	exec_sync("del data\\*.");
-	exec_sync("ren data\\*.unity3d *.db");
+	lz4dec(lz4file, "db");
+	exec_sync("del data\\manifest_" + res_ver);
 	printf("Successfully download manifest.\n");
 }
 
@@ -537,7 +560,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	else {
-		printf("CGSSAssetsDownloader ver 1.3\n\n");
+		printf("CGSSAssetsDownloader ver 1.4\n\n");
 
 		printf("Usage: CGSSAssetsDownloader <resource_version> [option or filename]\n\n");
 
@@ -550,11 +573,20 @@ int main(int argc, char* argv[]) {
 		printf("icon \t all unity3d files that contain 124x124 card icon will be downloaded.\n");
 		printf("score \t all bdb files that contain music score will be downloaded.\n\n");
 
-		printf("You can use \"DB Browser for SQLite\" open the manifest file in data\\ to browse file names\n\n");
+		printf("You can use \"DB Browser for SQLite\" open the manifest database file in data\\ to browse file names\n\n");
 		printf("Example:\nCGSSAssetsDownloader 10027700 bgm\n");
 		printf("CGSSAssetsDownloader 10028005 gachaselect_30145.unity3d\n\n");
 		
-		printf("By tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
+		printf("Developed by github@toyobayashi, tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
+
+		printf("Powered by:\n");
+		printf("hcadec\n");
+		printf("OpenCGSS/Deretore\n");
+		printf("SQLite\n");
+		printf("UnityLz4\n");
+		printf("wget\n\n");
+
+		printf("The copyright of CGSS and its related content is held by BANDAI NAMCO Entertainment, Inc.\n\n");
 
 		system("pause");
 	}

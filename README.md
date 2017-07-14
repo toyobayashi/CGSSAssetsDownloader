@@ -6,7 +6,7 @@ A download tool for CGSS (IDOL MASTER CINDERELLA GIRLS STARLIGHT STAGE).
 ## Usage
 
 ``` Bash
-$ CGSSAssetsDownloader <resource_version> [option or filename]
+$ CGSSAssetsDownloader <-v resource_version> [-o option or filename] [-u]
 ```
 If you don't know the <resource_version>, try to visit https://starlight.kirara.ca/api/v1/info 
 
@@ -22,13 +22,15 @@ option could be:
 
 【score】All bdb files that contain music score will be downloaded.
 
+If you use -u, the file will be copied to dl\.
+
 ## Powered by
 
 * [hcadec](https://github.com/alama/hcadec)
 * [OpenCGSS/DereTore](https://github.com/OpenCGSS/DereTore)
 * [SQLite](https://sqlite.org/)
 * [UnityLz4](https://github.com/subdiox/UnityLz4)
-* [wget](https://www.gnu.org/software/wget/)
+<!--* [wget](https://www.gnu.org/software/wget/)-->
 
 ## Copyright
 

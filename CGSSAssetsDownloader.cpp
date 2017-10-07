@@ -61,9 +61,21 @@ void Downloader::download_asset() {
 
 	if (type == "bgm") {
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/b/'||hash AS url, REPLACE(REPLACE(name,'b/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'b/%acb'";
+		if (Downloader::mp3 != 0) {
+			exec_sync("if not exist bgm\\mp3 md bgm\\mp3");
+		}
+		else {
+			exec_sync("if not exist bgm\\wav md bgm\\wav");
+		}
 	}
 	else if (type == "live") {
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/l/'||hash AS url, REPLACE(REPLACE(name,'l/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'l/%acb'";
+		if (Downloader::mp3 != 0) {
+			exec_sync("if not exist live\\mp3 md live\\mp3");
+		}
+		else {
+			exec_sync("if not exist live\\wav md live\\wav");
+		}
 	}
 	else if (type == "card") {
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card_bg_______.unity3d'";
@@ -97,7 +109,7 @@ void Downloader::download_single(string file) {
 	}
 
 	string suffixStr = file.substr(file.find_last_of(".") + 1);
-	exec_sync("if not exist \"dl\" md dl");
+	exec_sync("if not exist dl md dl");
 	if (suffixStr == "acb") {
 		string acb_type = file.substr(0,1);
 		sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/" + acb_type + "/'||hash AS url, REPLACE(REPLACE(name,'" + acb_type + "/',''),'.acb','') AS filename FROM manifests WHERE name='" + file + "'";
@@ -148,12 +160,13 @@ int main(int argc, char* argv[]) {
 		}
 		else {
 			printf("[ERROR] Please try resource version later than 10012760");
-			system("pause");
+			system("pause>nul");
 			return 0;
 		}
 
 		if (u != -1) {
 			Downloader::copy = 1;
+			exec_sync("if not exist dl md dl");
 		}
 
 		if (mp3 != -1) {

@@ -101,7 +101,12 @@ static int sum_number(void *data, int argc, char **argv, char **azColName) {
 	fstream _file;
 	string fileName;
 	if (type == "bgm" || type == "live") {
-		fileName = type + "\\" + name + ".wav";
+		if (Downloader::mp3 != 0) {
+			fileName = type + "\\mp3\\" + name + ".mp3";
+		}
+		else {
+			fileName = type + "\\wav\\" + name + ".wav";
+		}
 	}
 	else if (type == "card" || type == "icon") {
 		fileName = type + "\\" + name + ".unity3d";
@@ -127,10 +132,20 @@ static int get_asset(void *data, int argc, char **argv, char **azColName) {
 	string fileName;
 
 	if (strcmp((char*)data, "bgm") == 0) {
-		fileName = "bgm\\" + name + ".wav";
+		if (Downloader::mp3 != 0) {
+			fileName = "bgm\\mp3\\" + name + ".mp3";
+		}
+		else {
+			fileName = "bgm\\wav\\" + name + ".wav";
+		}
 	}
 	else if (strcmp((char*)data, "live") == 0) {
-		fileName = "live\\" + name + ".wav";
+		if (Downloader::mp3 != 0) {
+			fileName = "live\\mp3\\" + name + ".mp3";
+		}
+		else {
+			fileName = "live\\wav\\" + name + ".wav";
+		}
 	}
 	else if (strcmp((char*)data, "card") == 0) {
 		fileName = "card\\" + name + ".unity3d";
@@ -163,11 +178,19 @@ static int get_asset(void *data, int argc, char **argv, char **azColName) {
 			exec_sync("move bgm\\_acb_" + name + ".acb\\" + name + ".wav bgm\\");
 			exec_sync("rd bgm\\_acb_" + name + ".acb /s /q");
 			exec_sync("del bgm\\" + name + ".acb");
+			if (Downloader::mp3 != 0) {
+				exec_sync("tool\\ffmpeg\\ffmpeg.exe -i bgm\\" + name + ".wav bgm\\mp3\\" + name + ".mp3 -v quiet");
+				exec_sync("del bgm\\" + name + ".wav");
+			}
+			else {
+				exec_sync("move bgm\\" + name + ".wav bgm\\wav\\");
+			}
 			if (Downloader::copy != 0) {
-				exec_sync("copy bgm\\" + name + ".wav dl\\");
 				if (Downloader::mp3 != 0) {
-					exec_sync("tool\\ffmpeg\\ffmpeg.exe -i dl\\" + name + ".wav dl\\" + name + ".mp3 -v quiet");
-					exec_sync("del dl\\" + name + ".wav");
+					exec_sync("copy bgm\\mp3\\" + name + ".mp3 dl\\");
+				}
+				else {
+					exec_sync("copy bgm\\wav\\" + name + ".wav dl\\");
 				}
 			}
 		}
@@ -179,11 +202,19 @@ static int get_asset(void *data, int argc, char **argv, char **azColName) {
 			exec_sync("move live\\_acb_" + name + ".acb\\" + name + ".wav live\\");
 			exec_sync("rd live\\_acb_" + name + ".acb /s /q");
 			exec_sync("del live\\" + name + ".acb");
+			if (Downloader::mp3 != 0) {
+				exec_sync("tool\\ffmpeg\\ffmpeg.exe -i live\\" + name + ".wav live\\mp3\\" + name + ".mp3 -v quiet");
+				exec_sync("del live\\" + name + ".wav");
+			}
+			else {
+				exec_sync("move live\\" + name + ".wav live\\wav\\");
+			}
 			if (Downloader::copy != 0) {
-				exec_sync("copy live\\" + name + ".wav dl\\");
 				if (Downloader::mp3 != 0) {
-					exec_sync("tool\\ffmpeg\\ffmpeg.exe -i dl\\" + name + ".wav dl\\" + name + ".mp3 -v quiet");
-					exec_sync("del dl\\" + name + ".wav");
+					exec_sync("copy live\\mp3\\" + name + ".mp3 dl\\");
+				}
+				else {
+					exec_sync("copy live\\wav\\" + name + ".wav dl\\");
 				}
 			}
 		}

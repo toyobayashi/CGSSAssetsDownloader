@@ -140,9 +140,62 @@ void Downloader::download_single(string file) {
 	is_db_ok(rc, zErrMsg);
 }
 
+void show_introduction() {
+	printf("CGSSAssetsDownloader VERSION 1.7\n\n");
+
+	printf("Usage: \n");
+	printf("CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]\n");
+	printf("CGSSAssetsDownloader <-v resource_version> [-o option or filename] [-u] [-mp3]\n");
+	printf("CGSSAssetsDownloader file1 file2 file3 ...\n\n");
+
+	printf("Example: \n");
+	printf("CGSSAssetsDownloader -v 10027700 -o -bgm -u\n");
+	printf("CGSSAssetsDownloader -v 10028005 -o gachaselect_30145.unity3d\n");
+	printf("CGSSAssetsDownloader -v 10031250 -a -u -mp3\n");
+	printf("CGSSAssetsDownloader path\\to\\NoSuffixFile path\\to\\ACBFile.acb path\\to\\HCAFile.hca ...\n\n");
+
+	printf("Arguments: \n");
+	printf("<-v resource_version> [NECESSARY] Set the resource version of game and download database.\n");
+	printf("[-a] [OPTIONAL] Auto update bgm, live, card, icon, score assets.\n");
+	printf("[-o bgm|live|card|icon|score|(filename)] [OPTIONAL] Read the detail below.\n");
+	printf("[-u] [OPTIONAL] Copy files to \"dl\\\" folder.\n");
+	printf("[-mp3] [OPTIONAL] WAV to MP3.Default: WAV.\n\n");
+
+	printf("If you don't know the <resource_version>, try to visit\nhttps://starlight.kirara.ca/api/v1/info\n\n");
+
+	printf("-o detail: \n");
+	printf("  bgm \t all background music will be downloaded.\n");
+	printf("  live \t all live music will be downloaded.\n");
+	printf("  card \t all unity3d files that contain card background will be downloaded.\n");
+	printf("  icon \t all unity3d files that contain 124x124 card icon will be downloaded.\n");
+	printf("  score \t all bdb files that contain music score will be downloaded.\n\n");
+
+	printf("You can use \"DB Browser for SQLite\" open the manifest database file in data\\ to browse file names\n\n");
+
+	printf("You can also drag no suffix file (to .unity3d), .acb file or .hca file (to .wav, or to .mp3 if you use -mp3 argument with command line) into the exe\n\n");
+
+	printf("Developed by github@toyobayashi, tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
+
+	printf("Powered by:\n");
+	printf("hcadec\n");
+	printf("OpenCGSS/Deretore\n");
+	printf("ffmpeg\n");
+	printf("SQLite\n");
+	printf("UnityLz4\n\n");
+
+	printf("The copyright of CGSS and its related content is held by BANDAI NAMCO Entertainment Inc.\n\n");
+
+	system("pause>nul");
+}
+
 int main(int argc, char* argv[]) {
 	exec_sync("echo off");
 	exec_sync("cls");
+
+	if (argc == 1) {
+		show_introduction();
+		return 0;
+	}
 
 	int v = string_index_of(argv, "-v", argc);
 	int o = string_index_of(argv, "-o", argc);
@@ -210,47 +263,64 @@ int main(int argc, char* argv[]) {
 
 	}
 	else {
-		printf("CGSSAssetsDownloader VERSION 1.6\n\n");
+		if (mp3 != -1) {
+			Downloader::mp3 = 1;
+		}
 
-		printf("Usage: \n");
-		printf("CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]\n");
-		printf("CGSSAssetsDownloader <-v resource_version> [-o option or filename] [-u] [-mp3]\n\n");
+		for (int i = 1; i < argc; i++) {
+			string arg = argv[i];
+			
+			if (arg != "-mp3") {
 
-		printf("Example: \n");
-		printf("CGSSAssetsDownloader -v 10027700 -o -bgm -u\n");
-		printf("CGSSAssetsDownloader -v 10028005 -o gachaselect_30145.unity3d\n");
-		printf("CGSSAssetsDownloader -v 10031250 -a -u -mp3\n\n");
+				string root;
+				string fileName;
+				if (arg.find_last_of("\\") == string::npos) {
+					root = "";
+					fileName = arg;
+				}
+				else {
+					root = arg.substr(0, arg.find_last_of("\\"));
+					fileName = arg.substr(arg.find_last_of("\\") + 1);
+				}
+				
+				if (fileName.find_last_of(".") == string::npos && get_file_size(fileName.c_str()) != 0) {
+					lz4dec(arg, "unity3d");
+				}
+				else {
+					if (fileName.substr(fileName.find_last_of(".") + 1) == "hca") {
+						hcadec(arg);
+					}
+					else if (fileName.substr(fileName.find_last_of(".") + 1) == "acb") {
+						exec_sync(dir_name() + "\\tool\\AcbUnzip\\AcbUnzip.exe " + arg);
+						exec_sync("dir /a-d /b " + root + "\\_acb_" + fileName + "\\*.hca>" + root + "\\_acb_" + fileName + "\\hcafiles.txt");
 
-		printf("Arguments: \n");
-		printf("<-v resource_version> [NECESSARY] Set the resource version of game and download database.\n");
-		printf("[-a] [OPTIONAL] Auto update bgm, live, card, icon, score assets.\n");
-		printf("[-o bgm|live|card|icon|score|(filename)] [OPTIONAL] Read the detail below.\n");
-		printf("[-u] [OPTIONAL] Copy files to \"dl\\\" folder.\n");
-		printf("[-mp3] [OPTIONAL] WAV to MP3.Default: WAV.\n\n");
+						string hcaFile[300];
+						int i = 0;
+						ifstream infile;
+						infile.open(root + "\\_acb_" + fileName + "\\hcafiles.txt", ios::in);
+						while (!infile.eof()){
+							getline(infile, hcaFile[i], '\n');
+							i++;
+						}
+						infile.close();
 
-		printf("If you don't know the <resource_version>, try to visit\nhttps://starlight.kirara.ca/api/v1/info\n\n");
-
-		printf("-o detail: \n");
-		printf("  bgm \t all background music will be downloaded.\n");
-		printf("  live \t all live music will be downloaded.\n");
-		printf("  card \t all unity3d files that contain card background will be downloaded.\n");
-		printf("  icon \t all unity3d files that contain 124x124 card icon will be downloaded.\n");
-		printf("  score \t all bdb files that contain music score will be downloaded.\n\n");
-
-		printf("You can use \"DB Browser for SQLite\" open the manifest database file in data\\ to browse file names\n\n");
-		
-		printf("Developed by github@toyobayashi, tieba@ÆßÞy_Nyanko, weibo@TTPTs\n\n");
-
-		printf("Powered by:\n");
-		printf("hcadec\n");
-		printf("OpenCGSS/Deretore\n");
-		printf("ffmpeg\n");
-		printf("SQLite\n");
-		printf("UnityLz4\n\n");
-
-		printf("The copyright of CGSS and its related content is held by BANDAI NAMCO Entertainment Inc.\n\n");
-
-		system("pause>nul");
+						for (int x = 0; x < i - 1; x++) {
+							hcadec(root + "\\_acb_" + fileName + "\\" + hcaFile[x]);
+							string name = hcaFile[x].substr(0, hcaFile[x].find_last_of("."));
+							if (Downloader::mp3 != 0) {
+								exec_sync(dir_name() + "\\tool\\ffmpeg\\ffmpeg.exe -i " + root + "\\_acb_" + fileName + "\\" + name + ".wav " + root + "\\" + name + ".mp3 -v quiet");
+							}
+							else {
+								exec_sync("move " + root + "\\_acb_" + fileName + "\\" + name + ".wav " + root + "\\");
+							}
+						}
+						exec_sync("rd " + root + "\\_acb_" + fileName + " /s /q");
+					}
+				}
+			}
+		}
 	}
+
+	
 	return 0;
 }

@@ -8,6 +8,7 @@ A download tool for CGSS (IDOL MASTER CINDERELLA GIRLS STARLIGHT STAGE).
 ``` Bash
 CGSSAssetsDownloader <-v resource_version> [-o option or filename] [-u]  
 CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]  
+CGSSAssetsDownloader file1 file2 file3 ...
 ```
 ## Example
 
@@ -15,7 +16,10 @@ CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]
 CGSSAssetsDownloader -v 10027700 -o -bgm -u  
 CGSSAssetsDownloader -v 10028005 -o gachaselect_30145.unity3d  
 CGSSAssetsDownloader -v 10031250 -a -u -mp3  
+CGSSAssetsDownloader path\\to\\NoSuffixFile path\\to\\ACBFile.acb path\\to\\HCAFile.hca ...
 ```
+
+You can also drag no suffix file (to .unity3d), .acb file or .hca file (to .wav, or to .mp3 if you use -mp3 argument with command line) into the exe
 
 ## Arguments
 

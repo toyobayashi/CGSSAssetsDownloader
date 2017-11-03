@@ -62,6 +62,16 @@ void is_db_ok(int &r, char *&errmsg) {
 	}
 }
 
+string dir_name(){
+	char exeFullPath[MAX_PATH];
+	string strPath = "";
+
+	GetModuleFileNameA(NULL, exeFullPath, MAX_PATH);
+	strPath = (string)exeFullPath;
+	int pos = strPath.find_last_of('\\', strPath.length());
+	return strPath.substr(0, pos);
+}
+
 void hcadec(string hcafile) {
 	unsigned int count = 0;
 	char *filenameOut = NULL;
@@ -292,14 +302,39 @@ static int get_single(void *data, int argc, char **argv, char **azColName) {
 		if (strcmp((char*)data, "acb") == 0) {
 			exec_sync("ren dl\\" + name + ". " + name + ".acb");
 			exec_sync("tool\\AcbUnzip\\AcbUnzip.exe dl\\" + name + ".acb");
-			hcadec("dl\\_acb_" + name + ".acb\\" + name + ".hca");
-			exec_sync("move dl\\_acb_" + name + ".acb\\" + name + ".wav dl\\");
+
+			exec_sync("dir /a-d /b dl\\_acb_" + name + ".acb\\*.hca>dl\\_acb_" + name + ".acb\\hcafiles.txt");
+
+			string hcaFile[300];
+			int i = 0;
+			ifstream infile;
+			infile.open("dl\\_acb_" + name + ".acb\\hcafiles.txt", ios::in);
+			while (!infile.eof()) {
+				getline(infile, hcaFile[i], '\n');
+				i++;
+			}
+			infile.close();
+
+			for (int x = 0; x < i - 1; x++) {
+				hcadec("dl\\_acb_" + name + ".acb\\" + hcaFile[x]);
+				string fn = hcaFile[x].substr(0, hcaFile[x].find_last_of("."));
+				if (Downloader::mp3 != 0) {
+					exec_sync("tool\\ffmpeg\\ffmpeg.exe -i dl\\_acb_" + name + ".acb\\" + fn + ".wav dl\\" + fn + ".mp3 -v quiet");
+				}
+				else {
+					exec_sync("move dl\\_acb_" + name + ".acb\\" + fn + ".wav dl\\");
+				}
+			}
 			exec_sync("rd dl\\_acb_" + name + ".acb /s /q");
+			exec_sync("del dl\\" + name + ".acb");
+			/* hcadec("dl\\_acb_" + name + ".acb\\" + name + ".hca");
+			exec_sync("move dl\\_acb_" + name + ".acb\\" + name + ".wav dl\\");
+			exec_sync("rd dl\\_acb_" + name + ".acb /s /q"); 
 			exec_sync("del dl\\" + name + ".acb");
 			if (Downloader::mp3 != 0) {
 				exec_sync("tool\\ffmpeg\\ffmpeg.exe -i dl\\" + name + ".wav dl\\" + name + ".mp3 -v quiet");
 				exec_sync("del dl\\" + name + ".wav");
-			}
+			}*/
 		}
 		else if (strcmp((char*)data, "unity3d") == 0) {
 			lz4dec("dl\\" + name, "unity3d");

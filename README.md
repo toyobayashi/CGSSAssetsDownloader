@@ -43,12 +43,10 @@ If you don't know the <resource_version>, try to visit https://starlight.kirara.
 
 ## Powered by
 
-* [hcadec](https://github.com/alama/hcadec)
-* [OpenCGSS/DereTore](https://github.com/OpenCGSS/DereTore)
+* [HCADecoder](https://github.com/Nyagamon/HCADecoder)
 * [ffmpeg](http://ffmpeg.org/)
 * [SQLite](https://sqlite.org/)
 * [UnityLz4](https://github.com/subdiox/UnityLz4)
-<!--* [wget](https://www.gnu.org/software/wget/)-->
 
 ## Copyright
 

@@ -1,0 +1,5 @@
+build/
+src/sqlite3/*
+!src/sqlite3/README.md
+src/ACBExtractor/*
+!src/ACBExtractor/README.md

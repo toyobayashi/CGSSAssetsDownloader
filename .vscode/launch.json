@@ -1,0 +1,32 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debug-x64",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/x64/Debug/${config:targetName}.exe",
+            "args": ["-v", "10044600", "-o", "bgm"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/x64/Debug/",
+            "environment": [],
+            "externalConsole": true,
+            "preLaunchTask": "debug-x64"
+        },
+        {
+            "name": "debug-x86",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/x86/Debug/${config:targetName}.exe",
+            "args": ["-v", "10044600", "-o", "bgm"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "preLaunchTask": "debug-x86"
+        }
+    ]
+}

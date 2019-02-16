@@ -25,7 +25,7 @@ You can also drag no suffix file (to .unity3d), .acb file or .hca file (to .wav,
 
 ## Arguments
 
-<-v resource_version> [NECESSARY] Set the resource version of game and download database.  
+[-v resource_version] [OPTIONAL] Set the resource version of game and download database.  
 [-a] [OPTIONAL] Auto update bgm, live, card, icon, score assets.  
 [-o bgm|live|card|icon|score|(filename)] [OPTIONAL] Read the detail below.  
 [-u] [OPTIONAL] Copy files to "dl\" folder.  
@@ -44,9 +44,12 @@ If you don't know the <resource_version>, try to visit https://starlight.kirara.
 ## Powered by
 
 * [HCADecoder](https://github.com/Nyagamon/HCADecoder)
-* [ffmpeg](http://ffmpeg.org/)
 * [SQLite](https://sqlite.org/)
 * [UnityLz4](https://github.com/subdiox/UnityLz4)
+* [curl](https://github.com/curl/curl)
+* [libmp3lame](http://lame.sourceforge.net/)
+* [tiny-AES-c](https://github.com/kokke/tiny-AES-c)
+* [json](https://github.com/nlohmann/json)
 
 ## Copyright
 

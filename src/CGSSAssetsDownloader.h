@@ -1,7 +1,7 @@
 #ifndef __CGSSASSETSDOWNLOADER_H__
 #define __CGSSASSETSDOWNLOADER_H__
 
-#include "./sqlite3/sqlite3.h"
+#include "../lib/sqlite3/sqlite3.h"
 
 class Downloader {
 private:

@@ -1,14 +1,72 @@
-
 #include <fstream>
 #include <string>
+#include <iostream>
 #include <Windows.h>
 #include "./download.h"
 #include "./lz4.h"
 #include "./clHCA.h"
 #include "./CGSSAssetsDownloader.h"
-#include "./ACBExtractor/include/ACBExtractor.h"
+#include "../lib/ACBExtractor/include/ACBExtractor.h"
+#include "../lib/lame//lame.h"
+#include "ApiClient.h"
 
 using namespace std;
+
+static bool wav2mp3(std::string wavPath, std::string mp3Path) {
+  printf("WAV -> MP3...\n");
+  int read;
+  int write;
+  const char* wavfile = wavPath.c_str();
+  const char* mp3file = mp3Path.c_str();
+
+  FILE *wav = fopen(wavfile, "rb");
+  if (!wav) {
+    return false;
+  }
+
+  long start = 4 * 1024;
+  fseek(wav, 0L, SEEK_END);
+  long wavsize = ftell(wav);
+  fseek(wav, start, SEEK_SET);
+  FILE *mp3 = fopen(mp3file, "wb");
+  if (!mp3) {
+    return false;
+  }
+
+  const int WAV_SIZE = 8192;
+  const int MP3_SIZE = 8192;
+
+  const int CHANNEL = 2;
+
+  short int wav_buffer[WAV_SIZE * CHANNEL];
+  unsigned char mp3_buffer[MP3_SIZE];
+
+  lame_t lame = lame_init();
+  lame_set_in_samplerate(lame, 44100);
+  lame_set_num_channels(lame, CHANNEL);
+  // lame_set_mode(lame, MONO);
+  // lame_set_VBR(lame, vbr_default);
+  lame_set_brate(lame, 128);
+  lame_init_params(lame);
+
+  long total = start;
+  do {
+    read = static_cast<int>(fread(wav_buffer, sizeof(short int) * CHANNEL, WAV_SIZE, wav));
+    total += read * sizeof(short int) * CHANNEL;
+    if (read != 0) {
+      write = lame_encode_buffer_interleaved(lame, wav_buffer, read, mp3_buffer, MP3_SIZE);
+    } else {
+      write = lame_encode_flush(lame, mp3_buffer, MP3_SIZE);
+    }
+    fwrite(mp3_buffer, sizeof(unsigned char), static_cast<size_t>(write), mp3);
+  } while (read != 0);
+
+  // lame_mp3_tags_fid(lame, mp3);
+  lame_close(lame);
+  fclose(mp3);
+  fclose(wav);
+  return true;
+}
 
 Downloader::Downloader(string v, string t) {
   res_ver = v;
@@ -35,9 +93,8 @@ void Downloader::check_manifest() {
 
 void Downloader::download_manifest() {
   exec_sync("if not exist \"data\" md data");
-  //exec_sync("tool\\wget\\wget -c -O data\\manifest_" + res_ver + " http://storage.game.starlight-stage.jp/dl/" + res_ver + "/manifests/Android_AHigh_SHigh");
-  download("http://storage.game.starlight-stage.jp/dl/" + res_ver + "/manifests/Android_AHigh_SHigh", "./data/manifest_" + res_ver + ".");
-
+  download("https://asset-starlight-stage.akamaized.net/dl/" + res_ver + "/manifests/Android_AHigh_SHigh", "./data/manifest_" + res_ver + ".");
+  printf("\n\nManifest lz4 decompressing...\n");
   string lz4file = "data\\manifest_" + res_ver;
   long size = get_file_size(lz4file.c_str());
   if (size < 1) {
@@ -70,7 +127,7 @@ void Downloader::download_asset() {
   exec_sync("if not exist \"" + type + "\" md " + type);
 
   if (type == "bgm") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/b/'||hash AS url, REPLACE(REPLACE(name,'b/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'b/%acb'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Sound/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(REPLACE(name,'b/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'b/%acb'";
     if (Downloader::mp3 != 0) {
       exec_sync("if not exist bgm\\mp3 md bgm\\mp3");
     }
@@ -79,7 +136,7 @@ void Downloader::download_asset() {
     }
   }
   else if (type == "live") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/l/'||hash AS url, REPLACE(REPLACE(name,'l/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'l/%acb'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Sound/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(REPLACE(name,'l/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'l/%acb'";
     if (Downloader::mp3 != 0) {
       exec_sync("if not exist live\\mp3 md live\\mp3");
     }
@@ -88,13 +145,13 @@ void Downloader::download_asset() {
     }
   }
   else if (type == "card") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card_bg_______.unity3d'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/AssetBundles/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card_bg_______.unity3d'";
   }
   else if (type == "icon") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card________m.unity3d'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/AssetBundles/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name LIKE 'card________m.unity3d'";
   }
   else if (type == "score") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/Generic/'||hash AS url, REPLACE(name,'.bdb','') AS filename FROM manifests WHERE name LIKE 'musicscores%bdb'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Generic/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.bdb','') AS filename FROM manifests WHERE name LIKE 'musicscores%bdb'";
   }
   read_database(db, sql, data, zErrMsg, rc, type);
 
@@ -122,16 +179,16 @@ void Downloader::download_single(string file) {
   exec_sync("if not exist dl md dl");
   if (suffixStr == "acb") {
     string acb_type = file.substr(0,1);
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/Sound/Common/" + acb_type + "/'||hash AS url, REPLACE(REPLACE(name,'" + acb_type + "/',''),'.acb','') AS filename FROM manifests WHERE name='" + file + "'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Sound/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(REPLACE(name,'" + acb_type + "/',''),'.acb','') AS filename FROM manifests WHERE name='" + file + "'";
   }
   else if (suffixStr == "unity3d") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/High/AssetBundles/Android/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name='" + file + "'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/AssetBundles/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.unity3d','') AS filename FROM manifests WHERE name='" + file + "'";
   }
   else if (suffixStr == "bdb") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/Generic/'||hash AS url, REPLACE(name,'.bdb','') AS filename FROM manifests WHERE name='" + file + "'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Generic/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.bdb','') AS filename FROM manifests WHERE name='" + file + "'";
   }
   else if (suffixStr == "mdb") {
-    sql = "SELECT 'http://storage.game.starlight-stage.jp/dl/resources/Generic/'||hash AS url, REPLACE(name,'.mdb','') AS filename FROM manifests WHERE name='" + file + "'";
+    sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Generic/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.mdb','') AS filename FROM manifests WHERE name='" + file + "'";
   }
   else {
     exec_sync("cls");
@@ -151,7 +208,7 @@ void Downloader::download_single(string file) {
 }
 
 void show_introduction() {
-  printf("CGSSAssetsDownloader VERSION 1.8\n\n");
+  printf("CGSSAssetsDownloader VERSION 2.0\n\n");
 
   printf("Usage: \n");
   printf("CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]\n");
@@ -165,7 +222,7 @@ void show_introduction() {
   printf("CGSSAssetsDownloader path\\to\\NoSuffixFile path\\to\\ACBFile.acb path\\to\\HCAFile.hca ...\n\n");
 
   printf("Arguments: \n");
-  printf("<-v resource_version> [NECESSARY] Set the resource version of game and download database.\n");
+  printf("[-v resource_version] [OPTIONAL] Set the resource version of game and download database.\n");
   printf("[-a] [OPTIONAL] Auto update bgm, live, card, icon, score assets.\n");
   printf("[-o bgm|live|card|icon|score|(filename)] [OPTIONAL] Read the detail below.\n");
   printf("[-u] [OPTIONAL] Copy files to \"dl\\\" folder.\n");
@@ -187,10 +244,13 @@ void show_introduction() {
   printf("Developed by github@toyobayashi\n\n");
 
   printf("Powered by:\n");
-  printf("HCADecoder\n");
-  printf("ffmpeg\n");
-  printf("SQLite\n");
-  printf("UnityLz4\n\n");
+  printf("libcurl\n");
+  printf("libmp3lame\n");
+  printf("sqlite3\n");
+  printf("Nyagamon/HCADecoder\n");
+  printf("kokke/tiny-AES-c\n");
+  printf("nlohmann/json\n");
+  printf("subdiox/UnityLz4\n\n");
 
   printf("The copyright of CGSS and its related content is held by BANDAI NAMCO Entertainment Inc.\n\n");
 
@@ -350,14 +410,14 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
     if (strcmp((char*)data, "bgm") == 0) {
 
       download(url, "./bgm/" + name + ".acb");
-
+      printf("\nExtracting ACB...\n");
       extract_acb("bgm\\" + name + ".acb");
       hcadec("bgm\\_acb_" + name + ".acb\\" + name + ".hca");
       exec_sync("move bgm\\_acb_" + name + ".acb\\" + name + ".wav bgm\\");
       exec_sync("rd bgm\\_acb_" + name + ".acb /s /q");
       exec_sync("del bgm\\" + name + ".acb");
       if (Downloader::mp3 != 0) {
-        exec_sync("tool\\ffmpeg\\ffmpeg.exe -i bgm\\" + name + ".wav bgm\\mp3\\" + name + ".mp3 -v quiet");
+        wav2mp3(std::string("bgm\\") + name + ".wav", std::string("bgm\\mp3\\") + name + ".mp3");
         exec_sync("del bgm\\" + name + ".wav");
       }
       else {
@@ -375,14 +435,14 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
     else if (strcmp((char*)data, "live") == 0) {
 
       download(url, "./live/" + name + ".acb");
-
+      printf("\nExtracting ACB...\n");
       extract_acb("live\\" + name + ".acb");
       hcadec("live\\_acb_" + name + ".acb\\" + name + ".hca");
       exec_sync("move live\\_acb_" + name + ".acb\\" + name + ".wav live\\");
       exec_sync("rd live\\_acb_" + name + ".acb /s /q");
       exec_sync("del live\\" + name + ".acb");
       if (Downloader::mp3 != 0) {
-        exec_sync("tool\\ffmpeg\\ffmpeg.exe -i live\\" + name + ".wav live\\mp3\\" + name + ".mp3 -v quiet");
+        wav2mp3(std::string("live\\") + name + ".wav", std::string("live\\mp3\\") + name + ".mp3");
         exec_sync("del live\\" + name + ".wav");
       }
       else {
@@ -467,10 +527,11 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
     printf("\n\n");
 
     download(url, "./dl/" + name + ".");
+    printf("\n");
 
     if (strcmp((char*)data, "acb") == 0) {
       exec_sync("ren dl\\" + name + ". " + name + ".acb");
-
+      printf("Extracting ACB...\n");
       extract_acb("dl\\" + name + ".acb");
       exec_sync("dir /a-d /b dl\\_acb_" + name + ".acb\\*.hca>dl\\_acb_" + name + ".acb\\hcafiles.txt");
 
@@ -488,7 +549,7 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
         hcadec("dl\\_acb_" + name + ".acb\\" + hcaFile[x]);
         string fn = hcaFile[x].substr(0, hcaFile[x].find_last_of("."));
         if (Downloader::mp3 != 0) {
-          exec_sync("tool\\ffmpeg\\ffmpeg.exe -i dl\\_acb_" + name + ".acb\\" + fn + ".wav dl\\" + fn + ".mp3 -v quiet");
+          wav2mp3(std::string("dl\\_acb_") + name + ".acb\\" + fn + ".wav", std::string("dl\\") + fn + ".mp3");
         }
         else {
           exec_sync("move dl\\_acb_" + name + ".acb\\" + fn + ".wav dl\\");
@@ -501,7 +562,6 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
       exec_sync("rd dl\\_acb_" + name + ".acb /s /q"); 
       exec_sync("del dl\\" + name + ".acb");
       if (Downloader::mp3 != 0) {
-        exec_sync("tool\\ffmpeg\\ffmpeg.exe -i dl\\" + name + ".wav dl\\" + name + ".mp3 -v quiet");
         exec_sync("del dl\\" + name + ".wav");
       }*/
     }
@@ -563,6 +623,7 @@ void read_database(sqlite3 *db, const char *sql, const char* data, char *zErrMsg
 }
 
 int main(int argc, char* argv[]) {
+  exec_sync("chcp 65001");
   exec_sync("echo off");
   exec_sync("cls");
 
@@ -580,16 +641,27 @@ int main(int argc, char* argv[]) {
   string version;
   string option;
 
-  if (v != -1 && v + 1 < argc) {
+  if (true) {
+    if (v != -1 && v + 1 < argc) {
+      if (atoi(argv[v + 1]) > 10012760) {
+        version = argv[v + 1];
+      } else {
+        printf("[ERROR] Please try resource version later than 10012760");
+        system("pause>nul");
+        return 0;
+      }
+    } else {
+      printf("Checking resource version");
+      ApiClient client("775891250:910841675:600a5efd-cae5-41ff-a0c7-7deda751c5ed");
+      nlohmann::json versionCheck = client.check();
+      if (!versionCheck["error"].is_null()) {
+        printf((std::string("[ERROR] ") + versionCheck["error"].get<std::string>() + "\n").c_str());
+        return 0;
+      }
 
-    if (atoi(argv[v + 1]) > 10012760) {
-      version = argv[v + 1];
+      version = versionCheck["data"].get<std::string>();
     }
-    else {
-      printf("[ERROR] Please try resource version later than 10012760");
-      system("pause>nul");
-      return 0;
-    }
+    
 
     if (u != -1) {
       Downloader::copy = 1;
@@ -682,7 +754,7 @@ int main(int argc, char* argv[]) {
               hcadec(root + "\\_acb_" + fileName + "\\" + hcaFile[x]);
               string name = hcaFile[x].substr(0, hcaFile[x].find_last_of("."));
               if (Downloader::mp3 != 0) {
-                exec_sync(dir_name() + "\\tool\\ffmpeg\\ffmpeg.exe -i " + root + "\\_acb_" + fileName + "\\" + name + ".wav " + root + "\\" + name + ".mp3 -v quiet");
+                wav2mp3(root + "\\_acb_" + fileName + "\\" + name + ".wav", root + "\\" + name + ".mp3");
               }
               else {
                 exec_sync("move " + root + "\\_acb_" + fileName + "\\" + name + ".wav " + root + "\\");

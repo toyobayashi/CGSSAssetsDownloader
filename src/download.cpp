@@ -77,7 +77,7 @@ static size_t onDataWrite(void* buffer, size_t size, size_t nmemb, progressInfo*
   }
 
   if (userp->fp == nullptr) {
-    userp->fp = fopen(userp->path.c_str(), "ab+");
+    userp->fp = fs::openSync(userp->path.c_str(), "ab+");
     if (!(userp->fp)) {
       return size * nmemb;
     }
@@ -154,7 +154,7 @@ bool download (string url, string path) {
   if (code != CURLE_OK) {
     printf("%s\n", curl_easy_strerror(code));
     if (info.fp != nullptr) {
-      fclose(info.fp);
+      fs::closeSync(info.fp);
       info.fp = nullptr;
     }
     curl_slist_free_all(headers);
@@ -163,7 +163,7 @@ bool download (string url, string path) {
   }
 
   if (info.fp != nullptr) {
-    fclose(info.fp);
+    fs::closeSync(info.fp);
     info.fp = nullptr;
   }
   curl_slist_free_all(headers);

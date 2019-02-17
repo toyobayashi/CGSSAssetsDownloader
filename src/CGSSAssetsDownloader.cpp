@@ -209,7 +209,7 @@ void Downloader::download_single(string file) {
 }
 
 void show_introduction() {
-  printf("CGSSAssetsDownloader VERSION 2.0.0-pre\n\n");
+  printf("CGSSAssetsDownloader VERSION 2.0.0-pre1\n\n");
 
   printf("Usage: \n");
   printf("CGSSAssetsDownloader [-v resource_version] [-a] [-u] [-mp3]\n");

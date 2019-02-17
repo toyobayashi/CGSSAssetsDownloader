@@ -9,6 +9,7 @@
 #include "../lib/ACBExtractor/include/ACBExtractor.h"
 #include "../lib/lame//lame.h"
 #include "ApiClient.h"
+#include "fs.hpp"
 
 using namespace std;
 
@@ -92,11 +93,11 @@ void Downloader::check_manifest() {
 }
 
 void Downloader::download_manifest() {
-  exec_sync("if not exist \"data\" md data");
+  fs::mkdirsSync("data");
   download("https://asset-starlight-stage.akamaized.net/dl/" + res_ver + "/manifests/Android_AHigh_SHigh", "./data/manifest_" + res_ver + ".");
   printf("\n\nManifest lz4 decompressing...\n");
   string lz4file = "data\\manifest_" + res_ver;
-  long size = get_file_size(lz4file.c_str());
+  long size = fs::statSync(lz4file).size();
   if (size < 1) {
     printf("Failed.\n");
     exec_sync("del data\\manifest_" + res_ver + " /f /s /q");
@@ -124,24 +125,24 @@ void Downloader::download_asset() {
     fprintf(stderr, "Successfully open database.\n");
   }
 
-  exec_sync("if not exist \"" + type + "\" md " + type);
+  fs::mkdirsSync(type);
 
   if (type == "bgm") {
     sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Sound/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(REPLACE(name,'b/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'b/%acb'";
     if (Downloader::mp3 != 0) {
-      exec_sync("if not exist bgm\\mp3 md bgm\\mp3");
+      fs::mkdirsSync("bgm/mp3");
     }
     else {
-      exec_sync("if not exist bgm\\wav md bgm\\wav");
+      fs::mkdirsSync("bgm/wav");
     }
   }
   else if (type == "live") {
     sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Sound/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(REPLACE(name,'l/',''),'.acb','') AS filename FROM manifests WHERE name LIKE 'l/%acb'";
     if (Downloader::mp3 != 0) {
-      exec_sync("if not exist live\\mp3 md live\\mp3");
+      fs::mkdirsSync("live/mp3");
     }
     else {
-      exec_sync("if not exist live\\wav md live\\wav");
+      fs::mkdirsSync("live/wav");
     }
   }
   else if (type == "card") {
@@ -176,7 +177,7 @@ void Downloader::download_single(string file) {
   }
 
   string suffixStr = file.substr(file.find_last_of(".") + 1);
-  exec_sync("if not exist dl md dl");
+  fs::mkdirsSync("dl");
   if (suffixStr == "acb") {
     string acb_type = file.substr(0,1);
     sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Sound/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(REPLACE(name,'" + acb_type + "/',''),'.acb','') AS filename FROM manifests WHERE name='" + file + "'";
@@ -208,15 +209,15 @@ void Downloader::download_single(string file) {
 }
 
 void show_introduction() {
-  printf("CGSSAssetsDownloader VERSION 2.0\n\n");
+  printf("CGSSAssetsDownloader VERSION 2.0.0-pre\n\n");
 
   printf("Usage: \n");
-  printf("CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]\n");
-  printf("CGSSAssetsDownloader <-v resource_version> [-o option or filename] [-u] [-mp3]\n");
+  printf("CGSSAssetsDownloader [-v resource_version] [-a] [-u] [-mp3]\n");
+  printf("CGSSAssetsDownloader [-v resource_version] [-o option or filename] [-u] [-mp3]\n");
   printf("CGSSAssetsDownloader file1 file2 file3 ...\n\n");
 
   printf("Example: \n");
-  printf("CGSSAssetsDownloader -v 10027700 -o -bgm -u\n");
+  printf("CGSSAssetsDownloader -o -bgm -u\n");
   printf("CGSSAssetsDownloader -v 10028005 -o gachaselect_30145.unity3d\n");
   printf("CGSSAssetsDownloader -v 10031250 -a -u -mp3\n");
   printf("CGSSAssetsDownloader path\\to\\NoSuffixFile path\\to\\ACBFile.acb path\\to\\HCAFile.hca ...\n\n");
@@ -227,8 +228,6 @@ void show_introduction() {
   printf("[-o bgm|live|card|icon|score|(filename)] [OPTIONAL] Read the detail below.\n");
   printf("[-u] [OPTIONAL] Copy files to \"dl\\\" folder.\n");
   printf("[-mp3] [OPTIONAL] WAV to MP3.Default: WAV.\n\n");
-
-  printf("If you don't know the <resource_version>, try to visit\nhttps://starlight.kirara.ca/api/v1/info\n\n");
 
   printf("-o detail: \n");
   printf("  bgm \t all background music will be downloaded.\n");
@@ -600,7 +599,7 @@ void read_database(sqlite3 *db, const char *sql, const char* data, char *zErrMsg
   }
   else {
     ofstream log_txt;
-    exec_sync("if not exist \"log\" md log");
+    fs::mkdirsSync("log");
     exec_sync("cls");
     printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
     string head = "";
@@ -665,7 +664,7 @@ int main(int argc, char* argv[]) {
 
     if (u != -1) {
       Downloader::copy = 1;
-      exec_sync("if not exist dl md dl");
+      fs::mkdirsSync("dl");
     }
 
     if (mp3 != -1) {
@@ -729,7 +728,7 @@ int main(int argc, char* argv[]) {
           fileName = arg.substr(arg.find_last_of("\\") + 1);
         }
         
-        if (fileName.find_last_of(".") == string::npos && get_file_size(fileName.c_str()) != 0) {
+        if (fileName.find_last_of(".") == string::npos && fs::statSync(fileName).size() != 0) {
           lz4dec(arg, "unity3d");
         }
         else {

@@ -1,30 +1,19 @@
-//#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
-//#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
-//#endif
-
 #include <sstream>
 #include <math.h>
 #include <time.h>
-//#include <WinSock2.h>
 #include "./download.h"
 #include <curl.h>
-// #pragma comment(lib, "ws2_32.lib")
+#include "fs.hpp"
 
 using namespace std;
 
 #define PROGRESS_LENGTH 38
 
-long get_file_size (const char* strFileName) {
-  struct _stat info;
-  _stat(strFileName, &info);
-  long size = info.st_size;
-  return size;
-}
-
-//string Int_to_String (int n) {
-//  ostringstream stream;
-//  stream << n; 
-//  return stream.str();
+//long get_file_size (const char* strFileName) {
+//  struct stat info;
+//  stat(strFileName, &info);
+//  long size = info.st_size;
+//  return size;
 //}
 
 void progress (double local, double current, double max, double speed) {
@@ -69,18 +58,6 @@ void progress (double current, double max) {
 
 const int BuffSize = 1024;
 
-typedef struct {
-  FILE* fp;
-  long size;
-  long sum;
-  long total;
-  int speed;
-  double start_time;
-  double last_time;
-  double end_time;
-  std::string headerString;
-} progressInfo;
-
 static size_t onDataString(void* buffer, size_t size, size_t nmemb, progressInfo* userp) {
   char* d = (char*)buffer;
   int result = 0;
@@ -97,6 +74,13 @@ static size_t onDataWrite(void* buffer, size_t size, size_t nmemb, progressInfo*
     string contentlength3 = contentlength2.substr(16);
     int length = atoi(contentlength3.c_str());
     userp->total = length + userp->size;
+  }
+
+  if (userp->fp == nullptr) {
+    userp->fp = fopen(userp->path.c_str(), "ab+");
+    if (!(userp->fp)) {
+      return size * nmemb;
+    }
   }
 
   size_t iRec = fwrite(buffer, size, nmemb, userp->fp);
@@ -119,7 +103,7 @@ static size_t onDataWrite(void* buffer, size_t size, size_t nmemb, progressInfo*
   return iRec;
 }
 
-void download (string url, string path) {
+bool download (string url, string path) {
   CURL* curl = curl_easy_init();
   struct curl_slist* headers = NULL;
 
@@ -129,7 +113,9 @@ void download (string url, string path) {
   headers = curl_slist_append(headers, "Accept: */*");
   headers = curl_slist_append(headers, "User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.0; Nexus 42 Build/XYZZ1Y)");
 
-  long size = get_file_size(path.c_str());
+  // long size = get_file_size(path.c_str());
+  long size = fs::statSync(path).size();
+  // std::cout << size << std::endl;
 
   if (size != 0) {
     headers = curl_slist_append(headers, (std::string("Range: bytes=") + std::to_string(size) + "-").c_str());
@@ -144,7 +130,8 @@ void download (string url, string path) {
   //curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
 
   progressInfo info;
-  info.fp = fopen(path.c_str(), "ab+");
+  info.path = path;
+  info.fp = nullptr;
   info.size = size;
   info.sum = 0;
   info.speed = 0;
@@ -153,7 +140,6 @@ void download (string url, string path) {
   info.last_time = 0;
   info.total = -1;
   info.headerString = "";
-
 
   curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &onDataString);
   curl_easy_setopt(curl, CURLOPT_HEADERDATA, &info);
@@ -167,166 +153,20 @@ void download (string url, string path) {
 
   if (code != CURLE_OK) {
     printf("%s\n", curl_easy_strerror(code));
-    fclose(info.fp);
+    if (info.fp != nullptr) {
+      fclose(info.fp);
+      info.fp = nullptr;
+    }
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
-    return;
+    return false;
   }
 
-  fclose(info.fp);
+  if (info.fp != nullptr) {
+    fclose(info.fp);
+    info.fp = nullptr;
+  }
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
-  //size_t protocol = url.find("//") + 2;
-  //string hostname = url.substr(protocol, url.substr(protocol).find_first_of('/'));
-
-  //string route = url.substr(protocol).substr(url.substr(protocol).find_first_of('/'));
-
-  //long size = get_file_size(path.c_str());
-
-  //WSADATA WsaData;
-  //if (WSAStartup(MAKEWORD(2, 2), &WsaData)) {
-  //  printf("Init failed.\n");
-  //  return;
-  //}
-
-  //SOCKET sockeId;
-  //SOCKADDR_IN addr;
-  //hostent *remoteHost;
-  //remoteHost = gethostbyname(hostname.c_str());
-
-  //if (-1 == (sockeId = socket(AF_INET, SOCK_STREAM, 0))) {
-  //  printf("Create socket failed.\n");
-  //  return;
-  //}
-
-  //addr.sin_addr.S_un.S_addr = *((unsigned long *)*remoteHost->h_addr_list);   //inet_addr("104.116.243.18")
-  //addr.sin_family = AF_INET;
-  //addr.sin_port = htons(80);
-
-  //if (SOCKET_ERROR == connect(sockeId, (SOCKADDR *)&addr, sizeof(addr))) {
-  //  printf("Connect server failed.\n");
-  //  closesocket(sockeId);
-  //  WSACleanup();
-  //  return;
-  //}
-
-  //char* pReqHead = new char[BuffSize];
-  //pReqHead[0] = '\0';
-  //
-  //strcat(pReqHead, "GET ");
-  //strcat(pReqHead, route.c_str());
-  //strcat(pReqHead, " HTTP/1.1\r\n");
- 
-  //string hosthead = "Host: " + hostname + "\r\n";
-
-  //strcat(pReqHead, hosthead.c_str());
-  //strcat(pReqHead, "Accept: */*\r\n");
-  //strcat(pReqHead, "Connection: Keep-Alive\r\n");
-  //strcat(pReqHead, "User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.0; Nexus 42 Build/XYZZ1Y)\r\n");
-  //strcat(pReqHead, "X-Unity-Version: 5.4.5p1\r\n");
-  //strcat(pReqHead, "Accept-Encoding: gzip\r\n");
-  //if (size != 0) {
-  //  string range = "Range: bytes=" + Int_to_String(size) + "-\r\n";
-  //  strcat(pReqHead, range.c_str());
-  //}
-  //strcat(pReqHead, "\r\n");
-
-  //if (SOCKET_ERROR == send(sockeId, pReqHead, (int)strlen(pReqHead), 0)) {
-  //  printf("Send data failed.\n");
-  //  closesocket(sockeId);
-  //  WSACleanup();
-  //  delete pReqHead;
-  //  return;
-  //}
-
-  //delete pReqHead;
-
-  //FILE *fp;
-  //fp = fopen(path.c_str(), "ab+");
-
-  //if (NULL == fp) {
-  //  printf("Create file failed.\n");
-  //  closesocket(sockeId);
-  //  WSACleanup();
-  //  return;
-  //}
-
-  //char* buff = (char*)malloc(BuffSize * sizeof(char));
-  //memset(buff, '\0', BuffSize);
-  //int iRec = 1;
-  //bool bStart = false;
-  //int chars = 0;
-
-  //string str;
-  //while (!bStart) {
-  //  iRec = recv(sockeId, buff, 1, 0);
-  //  str += *buff;
-  //  if (iRec < 0) {
-  //    bStart = true;
-  //  }
-  //  switch (*buff)
-  //  {
-  //  case '\r':
-  //    break;
-  //  case '\n':
-  //    if (chars == 0) {
-  //      bStart = true;
-  //    }
-  //    chars = 0;
-  //    break;
-  //  default:
-  //    chars++;
-  //    break;
-  //  }
-  //}
-
-  //int length = -1;
-  //if (str.find("Content-Length: ") != str.npos) {
-  //  string contentlength1 = str.substr(str.find("Content-Length: "));
-  //  string contentlength2 = contentlength1.substr(0, contentlength1.find_first_of('\r'));
-  //  string contentlength3 = contentlength2.substr(16);
-  //  length = atoi(contentlength3.c_str());
-  //}
-  //else {
-  //  printf("Download faild.\n");
-  //  return;
-  //}
-
-  //if (size == length && str.find("Content-Range") == str.npos) {
-  //  printf("File exists.\n");
-  //}
-  //else {
-  //  int sum = 0;
-  //  int speed = 0;
-  //  double start_time = clock();
-  //  double end_time = 0;
-  //  int last_time = 0;
-  //  do {
-  //    iRec = recv(sockeId, buff, BuffSize, 0);
-  //    if (iRec < 0) {
-  //      break;
-  //    }
-  //    sum += iRec;
-  //    speed += iRec;
-  //    int now = clock();
-  //    if (now - last_time > 500) {
-  //      progress(size, sum, length + size, speed * 2);
-  //      last_time = now;
-  //      speed = 0;
-  //    }
-
-  //    fwrite(buff, iRec, 1, fp);
-  //    if (sum == length) {
-  //      end_time = clock();
-  //      progress(size, sum, length + size, (double)sum / ((end_time - start_time) / 1000));
-  //      closesocket(sockeId);
-  //      WSACleanup();
-  //      break;
-  //    }
-  //  } while (iRec > 0);
-  //}
-
-  //fclose(fp);
-  //free(buff);
-  //printf("\n\n");
+  return true;
 }

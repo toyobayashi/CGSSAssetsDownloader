@@ -3,14 +3,23 @@
 
 #include <iostream>
 
-long get_file_size (const char*);
-
-std::string Int_to_String (int);
+typedef struct {
+  FILE* fp;
+  long size;
+  long sum;
+  long total;
+  int speed;
+  double start_time;
+  double last_time;
+  double end_time;
+  std::string headerString;
+  std::string path;
+} progressInfo;
 
 void progress (double local, double current, double max, double speed);
 
 void progress (double current, double max);
 
-void download (std::string url, std::string path);
+bool download (std::string url, std::string path);
 
 #endif // !__DOWNLOAD_H__

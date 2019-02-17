@@ -8,14 +8,14 @@ Emmmmmmmm... In fact I'm not good at programing with C++. So I recommend you to 
 ## Usage
 
 ``` Bash
-CGSSAssetsDownloader <-v resource_version> [-o option or filename] [-u]  
-CGSSAssetsDownloader <-v resource_version> [-a] [-u] [-mp3]  
+CGSSAssetsDownloader [-v resource_version] [-o option or filename] [-u]  
+CGSSAssetsDownloader [-v resource_version] [-a] [-u] [-mp3]  
 CGSSAssetsDownloader file1 file2 file3 ...
 ```
 ## Example
 
 ``` Bash
-CGSSAssetsDownloader -v 10027700 -o -bgm -u  
+CGSSAssetsDownloader -o -bgm -u  
 CGSSAssetsDownloader -v 10028005 -o gachaselect_30145.unity3d  
 CGSSAssetsDownloader -v 10031250 -a -u -mp3  
 CGSSAssetsDownloader path\\to\\NoSuffixFile path\\to\\ACBFile.acb path\\to\\HCAFile.hca ...
@@ -30,8 +30,6 @@ You can also drag no suffix file (to .unity3d), .acb file or .hca file (to .wav,
 [-o bgm|live|card|icon|score|(filename)] [OPTIONAL] Read the detail below.  
 [-u] [OPTIONAL] Copy files to "dl\" folder.  
 [-mp3] [OPTIONAL] WAV to MP3.Default: WAV.  
-
-If you don't know the <resource_version>, try to visit https://starlight.kirara.ca/api/v1/info 
 
 -o detail:
 

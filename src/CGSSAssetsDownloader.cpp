@@ -7,9 +7,9 @@
 #include "./clHCA.h"
 #include "./CGSSAssetsDownloader.h"
 #include "../lib/ACBExtractor/include/ACBExtractor.h"
-#include "../lib/lame//lame.h"
+#include "../lib/lame/lame.h"
 #include "ApiClient.h"
-#include "fs.hpp"
+#include "../lib/jstype/fs.hpp"
 
 using namespace std;
 
@@ -650,13 +650,15 @@ int main(int argc, char* argv[]) {
         return 0;
       }
     } else {
-      printf("Checking resource version");
+      printf("Checking resource version...\n\n");
       ApiClient client("775891250:910841675:600a5efd-cae5-41ff-a0c7-7deda751c5ed");
       nlohmann::json versionCheck = client.check();
       if (!versionCheck["error"].is_null()) {
         printf((std::string("[ERROR] ") + versionCheck["error"].get<std::string>() + "\n").c_str());
         return 0;
       }
+
+      printf("Resource version: %s\n", versionCheck["data"].get<std::string>().c_str());
 
       version = versionCheck["data"].get<std::string>();
     }

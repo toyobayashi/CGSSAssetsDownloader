@@ -1,5 +1,5 @@
 #include "JSBuffer.h"
-#include "../lib/base64/b64.h"
+#include "../base64/b64.h"
 
 char Buffer::_map[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                          '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};

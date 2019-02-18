@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <errno.h>
 #include "JSString.h"
+#include "JSArray.hpp"
+#include "path.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -20,17 +22,11 @@
 class fs {
 private:
   fs() {};
-  static wchar_t* toWideChar(const String& str) {
-    int wLength = MultiByteToWideChar(CP_UTF8, 0, str.toCString(), -1, nullptr, 0);
-    wchar_t* buf = new wchar_t[wLength];
-    MultiByteToWideChar(CP_UTF8, 0, str.toCString(), -1, buf, wLength);
-    return buf;
-  }
-  class Stats {
+  class _Stats {
   public:
-    virtual ~Stats() {};
+    virtual ~_Stats() {};
 #ifdef _WIN32
-    Stats(const struct _stat& info, int err = 0) {
+    _Stats(const struct _stat& info, int err = 0) {
       _dev = info.st_dev;
       _ino = info.st_ino;
       _mode = info.st_mode;
@@ -120,19 +116,17 @@ private:
   };
 
 public:
+  typedef _Stats Stats;
   virtual ~fs() {};
   static Stats statSync(const String& filename) {
-    
+
 #ifdef _WIN32
     struct _stat info;
-    String newPath = filename.replace(std::regex("/"), "\\");
-    wchar_t* wstr = fs::toWideChar(newPath);
-    int res = _wstat(wstr, &info);
-    delete[] wstr;
-    wstr = nullptr;
+    String newPath = filename.replace(std::regex("/"), path::sep());
+    int res = _wstat(newPath.toWCppString().c_str(), &info);
 #else
     struct stat info;
-    String newPath = path.replace(std::regex("\\"), "/");
+    String newPath = path.replace(std::regex("\\"), path::sep());
     int res = stat(newPath.toCString(), &info);
 #endif
     if (res != 0) {
@@ -147,14 +141,11 @@ public:
   static bool existsSync(const String& filename) {
 #ifdef _WIN32
     struct _stat info;
-    String newPath = filename.replace(std::regex("/"), "\\");
-    wchar_t* wstr = fs::toWideChar(newPath);
-    int res = _wstat(wstr, &info);
-    delete[] wstr;
-    wstr = nullptr;
+    String newPath = filename.replace(std::regex("/"), path::sep());
+    int res = _wstat(newPath.toWCppString().c_str(), &info);
 #else
     struct stat info;
-    String newPath = path.replace(std::regex("\\"), "/");
+    String newPath = path.replace(std::regex("\\"), path::sep());
     int res = stat(newPath.toCString(), &info);
 #endif
     if (res != 0) {
@@ -171,16 +162,13 @@ public:
     if (!recursive) {
       int res;
 #ifdef _WIN32
-      String newPath = path.replace(std::regex("/"), "\\");
+      String newPath = path.replace(std::regex("/"), path::sep());
       if (fs::existsSync(newPath)) {
         return fs::statSync(newPath).isDirectory();
       }
-      wchar_t* wstr = fs::toWideChar(newPath);
-      res = _wmkdir(wstr);
-      delete[] wstr;
-      wstr = nullptr;
+      res = _wmkdir(newPath.toWCppString().c_str());
 #else
-      String newPath = path.replace(std::regex("\\"), "/");
+      String newPath = path.replace(std::regex("\\"), path::sep());
       if (fs::existsSync(newPath)) {
         return fs::statSync(newPath).isDirectory();
       }
@@ -194,12 +182,11 @@ public:
     }
 
 #ifdef _WIN32
-    String newPath = path.replace(std::regex("/"), "\\");
-    int sep = newPath.lastIndexOf("\\");
+    String newPath = path.replace(std::regex("/"), path::sep());
 #else
-    String newPath = path.replace(std::regex("\\"), "/");
-    int sep = path.lastIndexOf("/");
+    String newPath = path.replace(std::regex("\\"), path::sep());
 #endif
+    int sep = newPath.lastIndexOf(path::sep());
     String dirname;
     if (sep == -1) {
       dirname = ".";
@@ -223,18 +210,15 @@ public:
 
   static bool unlinkSync(const String& path) {
 #ifdef _WIN32
-    String newPath = path.replace(std::regex("/"), "\\");
+    String newPath = path.replace(std::regex("/"), path::sep());
     if (!fs::existsSync(newPath)) {
       return true;
     }
 
-    wchar_t* wstr = fs::toWideChar(newPath);
-    int res = _wunlink(wstr);
-    delete[] wstr;
-    wstr = nullptr;
+    int res = _wunlink(newPath.toWCppString().c_str());
     return res == 0;
 #else
-    String newPath = path.replace(std::regex("\\"), "/");
+    String newPath = path.replace(std::regex("\\"), path::sep());
     if (!fs::existsSync(newPath)) {
       return true;
     }
@@ -246,24 +230,74 @@ public:
 
   static FILE* openSync(const String& path, const String& mode) {
 #ifdef _WIN32
-    String newPath = path.replace(std::regex("/"), "\\");
-
-    wchar_t* wstr = fs::toWideChar(newPath);
-    wchar_t* wmode = fs::toWideChar(mode);
-    FILE* res = _wfopen(wstr, wmode);
-    delete[] wstr;
-    delete[] wmode;
-    wstr = nullptr;
-    wmode = nullptr;
-    return res;
+    String newPath = path.replace(std::regex("/"), path::sep());
+    return _wfopen(newPath.toWCppString().c_str(), mode.toWCppString().c_str());
 #else
-    String newPath = path.replace(std::regex("\\"), "/");
+    String newPath = path.replace(std::regex("\\"), path::sep());
     return fopen(newPath.toCString(), mode.toCString());
 #endif
   }
 
   static int closeSync(FILE* fp) {
     return fclose(fp);
+  }
+
+  static Array<String> readdirSync(const String& path) {
+#ifdef _WIN32
+    struct _wfinddata_t file;
+    intptr_t hFile;
+    String newPath = path.replace(std::regex("/"), path::sep());
+
+    hFile = _wfindfirst((newPath + "\\*.*").toWCppString().c_str(), &file);
+    if (hFile == -1) {
+      return {};
+    }
+
+    Array<String> res;
+
+    int len = WideCharToMultiByte(CP_UTF8, 0, file.name, -1, nullptr, 0, nullptr, nullptr);
+    char* str = new char[len];
+    WideCharToMultiByte(CP_UTF8, 0, file.name, -1, str, len, nullptr, nullptr);
+    String item = str;
+    delete[] str;
+    str = nullptr;
+    if (item != "." && item != "..") {
+      res.push(item);
+    }
+
+    while (_wfindnext(hFile, &file) == 0) {
+      int len = WideCharToMultiByte(CP_UTF8, 0, file.name, -1, nullptr, 0, nullptr, nullptr);
+      char* str = new char[len];
+      WideCharToMultiByte(CP_UTF8, 0, file.name, -1, str, len, nullptr, nullptr);
+      String item = str;
+      delete[] str;
+      str = nullptr;
+      if (item != "." && item != "..") {
+        res.push(item);
+      }
+    }
+    _findclose(hFile);
+
+    return res;
+#else
+    String newPath = path.replace(std::regex("\\"), path::sep());
+    DIR *dirp;
+    struct dirent *direntp;
+    int stats;
+    char buf[80];
+    if ((dirp = opendir(newPath.toCString())) == nullptr) {
+      return {};
+    }
+    Array<String> res;
+    while ((direntp = readdir(dirp)) != NULL) {
+      String item = direntp->d_name;
+      if (item != "." && item != "..") {
+        res.push(item);
+      }
+    }
+    closedir(dirp);
+    return res;
+#endif
   }
 };
 

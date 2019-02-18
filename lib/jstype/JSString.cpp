@@ -1,11 +1,12 @@
 #include "./JSString.h"
+#include "JSArray.hpp"
 #include <iostream>
 
 int String::_getByteLengthOfWideChar(const wchar_t* wStr) {
 #ifdef _WIN32
   return WideCharToMultiByte(CP_UTF8, 0, wStr, -1, nullptr, 0, nullptr,
-                             nullptr) -
-         1;
+    nullptr) -
+    1;
 #else
   int result = 0;
   while (*wStr != L'\0') {
@@ -35,12 +36,12 @@ char* String::_wideCharToUTF8(const wchar_t* wStr) {
 char* String::_wideCharToUTF8(const wchar_t* wStr, int utf8ByteLength) {
   char* utf8 = new (std::nothrow) char[utf8ByteLength + 1];
   if (utf8 == nullptr) {
-    return new char[1]{'\0'};
+    return new char[1]{ '\0' };
   }
 
 #ifdef _WIN32
   WideCharToMultiByte(CP_UTF8, 0, wStr, -1, utf8, utf8ByteLength + 1, nullptr,
-                      nullptr);
+    nullptr);
 #else
 
   int index = 0;
@@ -68,25 +69,25 @@ char* String::_wideCharToUTF8(const wchar_t* wStr, int utf8ByteLength) {
 }
 
 String::String() {
-  _value = new char[1]{'\0'};
+  _value = new char[1]{ '\0' };
 }
 
 String::String(const char c) {
-  _value = new char[2]{c, '\0'};
+  _value = new char[2]{ c, '\0' };
 }
 
 String::String(const char* cStr) {
-  _value = new char[strlen(cStr) + 1]{0};
+  _value = new char[strlen(cStr) + 1]{ 0 };
   strcpy(_value, cStr);
 }
 
 String::String(const std::string& str) {
-  _value = new char[str.length() + 1]{0};
+  _value = new char[str.length() + 1]{ 0 };
   strcpy(_value, str.c_str());
 }
 
 String::String(const String& str) {
-  _value = new char[strlen(str._value) + 1]{0};
+  _value = new char[strlen(str._value) + 1]{ 0 };
   strcpy(_value, str._value);
 }
 
@@ -119,8 +120,8 @@ bool String::operator!=(const String& str) const {
 
 String String::operator+(const String& str) const {
   int totalLength =
-      static_cast<int>(strlen(_value)) + static_cast<int>(strlen(str._value));
-  char* tmp = new char[totalLength + 1]{0};
+    static_cast<int>(strlen(_value)) + static_cast<int>(strlen(str._value));
+  char* tmp = new char[totalLength + 1]{ 0 };
 
   strcpy(tmp, _value);
   strcat(tmp, str._value);
@@ -133,7 +134,7 @@ String String::operator+(const String& str) const {
 
 String& String::operator+=(const String& str) {
   int totalLength = this->byteLength() + static_cast<int>(strlen(str._value));
-  char* tmp = new char[totalLength + 1]{0};
+  char* tmp = new char[totalLength + 1]{ 0 };
 
   strcpy(tmp, _value);
   strcat(tmp, str._value);
@@ -170,7 +171,7 @@ int String::charCodeAt(int index) const {
 
   String c = this->charAt(index);
 #ifdef _WIN32
-  wchar_t wc[2] = {0};
+  wchar_t wc[2] = { 0 };
   MultiByteToWideChar(CP_UTF8, 0, c._value, -1, wc, 2);
   return wc[0];
 #else
@@ -193,12 +194,12 @@ int String::charCodeAt(int index) const {
 String String::charAt(int index) const {
   int length = this->length();
   if (index < 0) {
-    const char res[1] = {'\0'};
+    const char res[1] = { '\0' };
     return res;
   }
 
   if (index > length - 1) {
-    const char res[1] = {'\0'};
+    const char res[1] = { '\0' };
     return res;
   }
 
@@ -220,16 +221,16 @@ String String::charAt(int index) const {
   }
 
   if ((((uint8_t)*p) >> 7) == 0) {
-    const char res[2] = {*p, '\0'};
+    const char res[2] = { *p, '\0' };
     return res;
   } else if ((((uint8_t)*p) >> 5) == 6) {
-    const char res[3] = {*p, *(p + 1), '\0'};
+    const char res[3] = { *p, *(p + 1), '\0' };
     return res;
   } else if ((((uint8_t)*p) >> 4) == 14) {
-    const char res[4] = {*p, *(p + 1), *(p + 2), '\0'};
+    const char res[4] = { *p, *(p + 1), *(p + 2), '\0' };
     return res;
   } else {
-    const char res[1] = {'\0'};
+    const char res[1] = { '\0' };
     return res;
   }
 }
@@ -357,7 +358,7 @@ int String::indexOf(const String& searchValue, int fromIndex) const {
     return fromIndex <= 0 ? 0 : (fromIndex <= thisLength ? fromIndex : thisLength);
   }
 
-  
+
   if (fromIndex >= thisLength) {
     return -1;
   }
@@ -460,7 +461,7 @@ String String::repeat(int n) const {
 
 String String::toLowerCase() const {
   int bl = byteLength();
-  char* res = new char[bl + 1]{0};
+  char* res = new char[bl + 1]{ 0 };
   for (int i = 0; i < bl; i++) {
     if (_value[i] >= 65 && _value[i] <= 90) {
       res[i] = _value[i] + 32;
@@ -476,7 +477,7 @@ String String::toLowerCase() const {
 
 String String::toUpperCase() const {
   int bl = byteLength();
-  char* res = new char[bl + 1]{0};
+  char* res = new char[bl + 1]{ 0 };
   for (int i = 0; i < bl; i++) {
     if (_value[i] >= 97 && _value[i] <= 122) {
       res[i] = _value[i] - 32;
@@ -491,49 +492,72 @@ String String::toUpperCase() const {
 }
 
 String String::trim() const {
-  int l = length();
-  String res = "";
-  for (int i = 0; i < l; i++) {
-    String c = (*this)[i];
-    if (c != " ") {
-      res += c;
-    }
-  }
-  return res;
+  return replace(std::regex("^[\\s\\xA0]+|[\\s\\xA0]+$"), "");
 }
 
 String String::trimRight() const {
-  int l = length();
-  String res = "";
-  bool flag = true;
-  for (int i = l - 1; i >= 0; i--) {
-    String c = (*this)[i];
-    if (c != " ") {
-      flag = false;
-      res = c + res;
-    } else {
-      if (!flag) {
-        res = c + res;
-      }
-    }
-  }
-  return res;
+  return replace(std::regex("[\\s\\xA0]+$"), "");
 }
 
 String String::trimLeft() const {
-  int l = length();
-  String res = "";
-  bool flag = true;
-  for (int i = 0; i < l; i++) {
-    String c = (*this)[i];
-    if (c != " ") {
-      flag = false;
-      res += c;
+  return replace(std::regex("^[\\s\\xA0]+"), "");
+}
+
+std::wstring String::toWCppString() const {
+#ifdef _WIN32
+  int wLength = MultiByteToWideChar(CP_UTF8, 0, _value, -1, nullptr, 0);
+  wchar_t* buf = new wchar_t[wLength]{0};
+  MultiByteToWideChar(CP_UTF8, 0, _value, -1, buf, wLength);
+  std::wstring res = buf;
+  delete[] buf;
+  buf = nullptr;
+  return res;
+#else
+  int wcharLength = this->length();
+  wchar_t* buf = new wchar_t[wcharLength + 1]{0};
+
+  char* p = _value;
+  int index = 0;
+  while (*p != '\0') {
+    if ((((uint8_t)*p) >> 7) == 0) {
+      buf[index] = (wchar_t)(*p);
+      index++;
+      p++;
+    } else if ((((uint8_t)*p) >> 5) == 6) {
+      buf[index] = (wchar_t)((((*p) & 0x1f) << 6) | ((*(p + 1)) & 0x3f));
+      index++;
+      p += 2;
+    } else if ((((uint8_t)*p) >> 4) == 14) {
+      buf[index] = (wchar_t)((((*p) & 0x0f) << 12) | (((*(p + 1)) & 0x3f) << 6) | ((*(p + 2)) & 0x3f));
+      index++;
+      p += 3;
     } else {
-      if (!flag) {
-        res += c;
-      }
+      p++;
     }
   }
+
+  std::wstring res = buf;
+  delete[] buf;
+  buf = nullptr;
+  return res;
+#endif
+}
+
+Array<String> String::split() const {
+  return { *this };
+}
+
+Array<String> String::split(const String& separator, int limit) const {
+  std::string copy = this->toCppString();
+  char* copyBuf = new char[copy.size() + 1]{0};
+  strcpy(copyBuf, copy.c_str());
+
+  char* tokenPtr = strtok(copyBuf, separator.toCString());
+  Array<String> res;
+  while (tokenPtr != NULL && (limit == -1 ? true : res.length() < limit)) {
+    res.push(tokenPtr);
+    tokenPtr = strtok(NULL, separator.toCString());
+  }
+  delete[] copyBuf;
   return res;
 }

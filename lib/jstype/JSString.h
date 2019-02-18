@@ -6,8 +6,9 @@
 #endif
 
 #include <cstring>
-#include <string>
 #include <regex>
+#include <string>
+template <typename T> class Array;
 
 class String {
  public:
@@ -57,6 +58,9 @@ class String {
   String trim() const;
   String trimRight() const;
   String trimLeft() const;
+  Array<String> split() const;
+  Array<String> split(const String& separator, int limit = -1) const;
+  std::wstring toWCppString() const;
 
   template <typename T>
   String concat(const T& str) const {

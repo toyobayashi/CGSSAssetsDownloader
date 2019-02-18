@@ -3,7 +3,7 @@
 #include <sstream>
 #include <vector>
 #include "../lib/aes/aes.hpp"
-#include "./JSMath.h"
+#include "../lib/jstype/JSMath.h"
 #include "../lib/md5/md5.h"
 #include "../lib/sha1/sha1.h"
 #include <curl.h>

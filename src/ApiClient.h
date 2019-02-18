@@ -1,7 +1,7 @@
 #ifndef __API_CLIENT_H__
 #define __API_CLIENT_H__
 
-#include "./JSBuffer.h"
+#include "../lib/jstype/JSBuffer.h"
 #include "../lib/json/json.hpp"
 
 class ApiClient {

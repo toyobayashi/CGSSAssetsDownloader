@@ -18,15 +18,6 @@
     <ClCompile Include="src\ApiClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\JSBuffer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JSMath.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JSString.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="lib\aes\aes.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -70,6 +61,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="lib\sqlite3\sqlite3.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\JSBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\JSMath.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\JSString.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\path.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,15 +122,6 @@
     <ClInclude Include="src\ApiClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\JSBuffer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JSMath.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JSString.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="lib\aes\aes.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -152,7 +146,22 @@
     <ClInclude Include="lib\lame\lame.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\fs.hpp">
+    <ClInclude Include="lib\jstype\fs.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\JSArray.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\JSBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\JSMath.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\JSString.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\path.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

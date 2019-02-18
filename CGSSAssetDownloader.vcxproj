@@ -153,6 +153,10 @@
     <ClCompile Include="lib\aes\aes.c" />
     <ClCompile Include="lib\base64\decode.c" />
     <ClCompile Include="lib\base64\encode.c" />
+    <ClCompile Include="lib\jstype\JSBuffer.cpp" />
+    <ClCompile Include="lib\jstype\JSMath.cpp" />
+    <ClCompile Include="lib\jstype\JSString.cpp" />
+    <ClCompile Include="lib\jstype\path.cpp" />
     <ClCompile Include="lib\md5\md5.c" />
     <ClCompile Include="lib\sha1\sha1.c" />
     <ClCompile Include="lib\sqlite3\sqlite3.c" />
@@ -160,9 +164,6 @@
     <ClCompile Include="src\CGSSAssetsDownloader.cpp" />
     <ClCompile Include="src\clHCA.cpp" />
     <ClCompile Include="src\download.cpp" />
-    <ClCompile Include="src\JSBuffer.cpp" />
-    <ClCompile Include="src\JSMath.cpp" />
-    <ClCompile Include="src\JSString.cpp" />
     <ClCompile Include="src\lz4.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +180,12 @@
     <ClInclude Include="lib\curl\typecheck-gcc.h" />
     <ClInclude Include="lib\curl\urlapi.h" />
     <ClInclude Include="lib\json\json.hpp" />
+    <ClInclude Include="lib\jstype\fs.hpp" />
+    <ClInclude Include="lib\jstype\JSArray.hpp" />
+    <ClInclude Include="lib\jstype\JSBuffer.h" />
+    <ClInclude Include="lib\jstype\JSMath.h" />
+    <ClInclude Include="lib\jstype\JSString.h" />
+    <ClInclude Include="lib\jstype\path.h" />
     <ClInclude Include="lib\lame\lame.h" />
     <ClInclude Include="lib\md5\md5.h" />
     <ClInclude Include="lib\sha1\sha1.h" />
@@ -188,10 +195,6 @@
     <ClInclude Include="src\CGSSAssetsDownloader.h" />
     <ClInclude Include="src\clHCA.h" />
     <ClInclude Include="src\download.h" />
-    <ClInclude Include="src\fs.hpp" />
-    <ClInclude Include="src\JSBuffer.h" />
-    <ClInclude Include="src\JSMath.h" />
-    <ClInclude Include="src\JSString.h" />
     <ClInclude Include="src\lz4.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

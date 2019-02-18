@@ -3,22 +3,42 @@
 #include <time.h>
 #include "./download.h"
 #include <curl.h>
-#include "fs.hpp"
+#include "../lib/jstype/fs.hpp"
 
 using namespace std;
 
-#define PROGRESS_LENGTH 38
+// #define PROGRESS_LENGTH 38
+#define PROGRESS 50
 
-//long get_file_size (const char* strFileName) {
-//  struct stat info;
-//  stat(strFileName, &info);
-//  long size = info.st_size;
-//  return size;
-//}
+#ifdef _WIN32
+static HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+#endif
+
+static int getTerminalWidth() {
+#ifdef _WIN32
+  CONSOLE_SCREEN_BUFFER_INFO bInfo;
+  GetConsoleScreenBufferInfo(hOutput, &bInfo);
+  return bInfo.dwSize.X;
+#else
+  return PROGRESS + 38;
+#endif
+}
+
+static int getTerminalCursorPositionToRight() {
+#ifdef _WIN32
+  CONSOLE_SCREEN_BUFFER_INFO bInfo;
+  GetConsoleScreenBufferInfo(hOutput, &bInfo);
+  // CloseHandle(hOutput);
+  return bInfo.dwSize.X - bInfo.dwCursorPosition.X;
+#else
+  return 5;
+#endif
+}
 
 void progress (double local, double current, double max, double speed) {
-  double p_local = round(local / max * PROGRESS_LENGTH);
-  double p_current = round(current / max * PROGRESS_LENGTH);
+  int progressLength = getTerminalWidth() - PROGRESS;
+  double p_local = round(local / max * progressLength);
+  double p_current = round(current / max * progressLength);
   double percent = (local + current) / max * 100;
   printf("\r");
   printf("%.2lf / %.2lf MB ", (local + current) / 1024 / 1024, max / 1024 / 1024);
@@ -30,17 +50,19 @@ void progress (double local, double current, double max, double speed) {
     printf("=");
   }
   printf(">");
-  for (int i = 0; i < (int)(PROGRESS_LENGTH - p_local - p_current); i++) {
+  for (int i = 0; i < (int)(progressLength - p_local - p_current); i++) {
     printf(" ");
   }
   printf("] ");
   printf("%5.2f%% ", percent);
   printf("%7.2lf KB/s", speed / 1024);
-  printf("   \b\b\b");
+  int marginRight = getTerminalCursorPositionToRight();
+  printf((String(" ").repeat(marginRight) + String("\b").repeat(marginRight)).toCString());
 }
 
 void progress (double current, double max) {
-  double p_current = floor(current / max * PROGRESS_LENGTH);
+  int progressLength = getTerminalWidth() - PROGRESS;
+  double p_current = floor(current / max * progressLength);
   double percent = current / max * 100;
   printf("Completed: %.0lf / %.0lf ", current, max);
   printf("[");
@@ -48,12 +70,13 @@ void progress (double current, double max) {
     printf("=");
   }
   printf(">");
-  for (int i = 0; i < (int)(PROGRESS_LENGTH - p_current); i++) {
+  for (int i = 0; i < (int)(progressLength - p_current); i++) {
     printf(" ");
   }
   printf("] ");
   printf("%5.2f%% ", percent);
-  printf("   \b\b\b");
+  int marginRight = getTerminalCursorPositionToRight();
+  printf((String(" ").repeat(marginRight) + String("\b").repeat(marginRight)).toCString());
 }
 
 const int BuffSize = 1024;
@@ -114,7 +137,8 @@ bool download (string url, string path) {
   headers = curl_slist_append(headers, "User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.0; Nexus 42 Build/XYZZ1Y)");
 
   // long size = get_file_size(path.c_str());
-  long size = fs::statSync(path).size();
+  auto a = fs::statSync(path);
+  long size = a.size();
   // std::cout << size << std::endl;
 
   if (size != 0) {

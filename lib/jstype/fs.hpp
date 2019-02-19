@@ -228,6 +228,57 @@ public:
 #endif
   }
 
+  static bool rmdirSync(const String& path) {
+#ifdef _WIN32
+    String newPath = path.replace(std::regex("/"), path::sep());
+    if (!fs::existsSync(newPath)) {
+      return true;
+    }
+
+    int res = _wrmdir(newPath.toWCppString().c_str());
+    return res == 0;
+#else
+    String newPath = path.replace(std::regex("\\"), path::sep());
+    if (!fs::existsSync(newPath)) {
+      return true;
+    }
+
+    int res = rmdir(newPath.toCString());
+    return res == 0;
+#endif
+  }
+
+  static bool removeSync(const String& path) {
+#ifdef _WIN32
+    String newPath = path.replace(std::regex("/"), path::sep());
+#else
+    String newPath = path.replace(std::regex("\\"), path::sep());
+#endif
+    if (!fs::existsSync(newPath)) {
+      return true;
+    }
+
+    fs::Stats stat = fs::statSync(newPath);
+    if (stat.isDirectory()) {
+      Array<String> items = fs::readdirSync(newPath);
+      if (items.length() != 0) {
+        bool res = true;
+        for (int i = 0; i < items.length(); i++) {
+          const String& item = items[i];
+          if (!fs::removeSync(path::join(newPath, item))) {
+            res = false;
+          }
+        }
+        bool lastResult = rmdirSync(newPath);
+        return res ? lastResult : res;
+      } else {
+        return rmdirSync(newPath);
+      }
+    }
+      
+    return unlinkSync(newPath);
+  }
+
   static FILE* openSync(const String& path, const String& mode) {
 #ifdef _WIN32
     String newPath = path.replace(std::regex("/"), path::sep());

@@ -100,11 +100,11 @@ void Downloader::download_manifest() {
   long size = fs::statSync(lz4file).size();
   if (size < 1) {
     printf("Failed.\n");
-    exec_sync("del data\\manifest_" + res_ver + " /f /s /q");
+    fs::removeSync(path::join("data", String("manifest_") + res_ver));
     exit(0);
   }
   lz4dec(lz4file, "db");
-  exec_sync("del data\\manifest_" + res_ver);
+  fs::removeSync(path::join("data", String("manifest_") + res_ver));
   printf("Successfully download manifest.\n");
 }
 
@@ -413,11 +413,12 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       extract_acb("bgm\\" + name + ".acb");
       hcadec("bgm\\_acb_" + name + ".acb\\" + name + ".hca");
       exec_sync("move bgm\\_acb_" + name + ".acb\\" + name + ".wav bgm\\");
-      exec_sync("rd bgm\\_acb_" + name + ".acb /s /q");
-      exec_sync("del bgm\\" + name + ".acb");
+      fs::removeSync(path::join("bgm", String("_acb_") + name + ".acb"));
+      fs::removeSync(path::join("bgm", name + ".acb"));
+
       if (Downloader::mp3 != 0) {
         wav2mp3(std::string("bgm\\") + name + ".wav", std::string("bgm\\mp3\\") + name + ".mp3");
-        exec_sync("del bgm\\" + name + ".wav");
+        fs::removeSync(path::join("bgm", name + ".wav"));
       }
       else {
         exec_sync("move bgm\\" + name + ".wav bgm\\wav\\");
@@ -438,11 +439,11 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       extract_acb("live\\" + name + ".acb");
       hcadec("live\\_acb_" + name + ".acb\\" + name + ".hca");
       exec_sync("move live\\_acb_" + name + ".acb\\" + name + ".wav live\\");
-      exec_sync("rd live\\_acb_" + name + ".acb /s /q");
-      exec_sync("del live\\" + name + ".acb");
+      fs::removeSync(path::join("live", String("_acb_") + name + ".acb"));
+      fs::removeSync(path::join("live", name + ".acb"));
       if (Downloader::mp3 != 0) {
         wav2mp3(std::string("live\\") + name + ".wav", std::string("live\\mp3\\") + name + ".mp3");
-        exec_sync("del live\\" + name + ".wav");
+        fs::removeSync(path::join("live", name + ".wav"));
       }
       else {
         exec_sync("move live\\" + name + ".wav live\\wav\\");
@@ -460,7 +461,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
 
       download(url, "./card/" + name + ".");
       lz4dec("card\\" + name, "unity3d");
-      exec_sync("del card\\" + name);
+      fs::removeSync(path::join("card", name));
       if (Downloader::copy != 0) {
         exec_sync("copy card\\" + name + ".unity3d dl\\");
       }
@@ -469,7 +470,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
 
       download(url, "./icon/" + name + ".");
       lz4dec("icon\\" + name, "unity3d");
-      exec_sync("del icon\\" + name);
+      fs::removeSync(path::join("icon", name));
       if (Downloader::copy != 0) {
         exec_sync("copy icon\\" + name + ".unity3d dl\\");
       }
@@ -478,7 +479,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
 
       download(url, "./score/" + name + ".");
       lz4dec("score\\" + name, "bdb");
-      exec_sync("del score\\" + name);
+      fs::removeSync(path::join("score", name));
       if (Downloader::copy != 0) {
         exec_sync("copy score\\" + name + ".bdb dl\\");
       }
@@ -554,27 +555,20 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
           exec_sync("move dl\\_acb_" + name + ".acb\\" + fn + ".wav dl\\");
         }
       }
-      exec_sync("rd dl\\_acb_" + name + ".acb /s /q");
-      exec_sync("del dl\\" + name + ".acb");
-      /* hcadec("dl\\_acb_" + name + ".acb\\" + name + ".hca");
-      exec_sync("move dl\\_acb_" + name + ".acb\\" + name + ".wav dl\\");
-      exec_sync("rd dl\\_acb_" + name + ".acb /s /q"); 
-      exec_sync("del dl\\" + name + ".acb");
-      if (Downloader::mp3 != 0) {
-        exec_sync("del dl\\" + name + ".wav");
-      }*/
+      fs::removeSync(path::join("dl", String("_acb_") + name + ".acb"));
+      fs::removeSync(path::join("dl", name + ".acb"));
     }
     else if (strcmp((char*)data, "unity3d") == 0) {
       lz4dec("dl\\" + name, "unity3d");
-      exec_sync("del dl\\" + name);
+      fs::removeSync(path::join("dl", name));
     }
     else if (strcmp((char*)data, "bdb") == 0) {
       lz4dec("dl\\" + name, "bdb");
-      exec_sync("del dl\\" + name);
+      fs::removeSync(path::join("dl", name));
     }
     else if (strcmp((char*)data, "mdb") == 0) {
       lz4dec("dl\\" + name, "mdb");
-      exec_sync("del dl\\" + name);
+      fs::removeSync(path::join("dl", name));
     }
     exec_sync("cls");
     printf("%s Completed.\n\n", name.c_str());
@@ -761,7 +755,7 @@ int main(int argc, char* argv[]) {
                 exec_sync("move " + root + "\\_acb_" + fileName + "\\" + name + ".wav " + root + "\\");
               }
             }
-            exec_sync("rd " + root + "\\_acb_" + fileName + " /s /q");
+            fs::removeSync(path::join(root, String("_acb_") + fileName));
           }
         }
       }

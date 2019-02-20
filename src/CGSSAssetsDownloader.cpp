@@ -192,7 +192,7 @@ void Downloader::download_single(string file) {
     sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Generic/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.mdb','') AS filename FROM manifests WHERE name='" + file + "'";
   }
   else {
-    exec_sync("cls");
+    clearTerminal();
     printf("File name error.\n\n");
     return;
   }
@@ -202,14 +202,14 @@ void Downloader::download_single(string file) {
     rc = sqlite3_exec(db, sql.c_str(), get_single, (void*)suffixStr.c_str(), &zErrMsg);
   }
   else {
-    exec_sync("cls");
+    clearTerminal();
     printf("%s not found.\n\n", file.c_str());
   }
   is_db_ok(rc, zErrMsg);
 }
 
 void show_introduction() {
-  printf("CGSSAssetsDownloader VERSION 2.0.0-pre1\n\n");
+  printf("CGSSAssetsDownloader VERSION 2.0.0-pre2\n\n");
 
   printf("Usage: \n");
   printf("CGSSAssetsDownloader [-v resource_version] [-a] [-u] [-mp3]\n");
@@ -274,10 +274,6 @@ int string_index_of (char* arr[], const char* str, int length) {
     }
   }
   return -1;
-}
-
-void exec_sync (string cmd) {
-  system(cmd.c_str());
 }
 
 void is_db_ok (int &r, char *&errmsg) {
@@ -401,7 +397,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
   if (!_file) {
     Downloader::update_list += name;
     Downloader::update_list += "\n";
-    exec_sync("cls");
+    clearTerminal();
     printf("Downloading: %s\n\n", name.c_str());
     progress(Downloader::current, Downloader::max);
     printf("\n\n");
@@ -412,7 +408,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       printf("\nExtracting ACB...\n");
       extract_acb("bgm\\" + name + ".acb");
       hcadec("bgm\\_acb_" + name + ".acb\\" + name + ".hca");
-      exec_sync("move bgm\\_acb_" + name + ".acb\\" + name + ".wav bgm\\");
+      fs::renameSync(path::join("bgm", String("_acb_") + name + ".acb", name + ".wav"), path::join("bgm", name + ".wav"));
       fs::removeSync(path::join("bgm", String("_acb_") + name + ".acb"));
       fs::removeSync(path::join("bgm", name + ".acb"));
 
@@ -421,14 +417,14 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
         fs::removeSync(path::join("bgm", name + ".wav"));
       }
       else {
-        exec_sync("move bgm\\" + name + ".wav bgm\\wav\\");
+        fs::renameSync(path::join("bgm", name + ".wav"), path::join("bgm", "wav", name + ".wav"));
       }
       if (Downloader::copy != 0) {
         if (Downloader::mp3 != 0) {
-          exec_sync("copy bgm\\mp3\\" + name + ".mp3 dl\\");
+          fs::copySync(path::join("bgm", "mp3", name + ".mp3"), path::join("dl", name + ".mp3"));
         }
         else {
-          exec_sync("copy bgm\\wav\\" + name + ".wav dl\\");
+          fs::copySync(path::join("bgm", "wav", name + ".wav"), path::join("dl", name + ".wav"));
         }
       }
     }
@@ -438,7 +434,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       printf("\nExtracting ACB...\n");
       extract_acb("live\\" + name + ".acb");
       hcadec("live\\_acb_" + name + ".acb\\" + name + ".hca");
-      exec_sync("move live\\_acb_" + name + ".acb\\" + name + ".wav live\\");
+      fs::renameSync(path::join("live", String("_acb_") + name + ".acb", name + ".wav"), path::join("live", name + ".wav"));
       fs::removeSync(path::join("live", String("_acb_") + name + ".acb"));
       fs::removeSync(path::join("live", name + ".acb"));
       if (Downloader::mp3 != 0) {
@@ -446,14 +442,14 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
         fs::removeSync(path::join("live", name + ".wav"));
       }
       else {
-        exec_sync("move live\\" + name + ".wav live\\wav\\");
+        fs::renameSync(path::join("live", name + ".wav"), path::join("live", "wav", name + ".wav"));
       }
       if (Downloader::copy != 0) {
         if (Downloader::mp3 != 0) {
-          exec_sync("copy live\\mp3\\" + name + ".mp3 dl\\");
+          fs::copySync(path::join("live", "mp3", name + ".mp3"), path::join("dl", name + ".mp3"));
         }
         else {
-          exec_sync("copy live\\wav\\" + name + ".wav dl\\");
+          fs::copySync(path::join("live", "wav", name + ".wav"), path::join("dl", name + ".wav"));
         }
       }
     }
@@ -463,7 +459,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       lz4dec("card\\" + name, "unity3d");
       fs::removeSync(path::join("card", name));
       if (Downloader::copy != 0) {
-        exec_sync("copy card\\" + name + ".unity3d dl\\");
+        fs::copySync(path::join("card", name + ".unity3d"), path::join("dl", name + ".unity3d"));
       }
     }
     else if (strcmp((char*)data, "icon") == 0) {
@@ -472,7 +468,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       lz4dec("icon\\" + name, "unity3d");
       fs::removeSync(path::join("icon", name));
       if (Downloader::copy != 0) {
-        exec_sync("copy icon\\" + name + ".unity3d dl\\");
+        fs::copySync(path::join("icon", name + ".unity3d"), path::join("dl", name + ".unity3d"));
       }
     }
     else if (strcmp((char*)data, "score") == 0) {
@@ -481,7 +477,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
       lz4dec("score\\" + name, "bdb");
       fs::removeSync(path::join("score", name));
       if (Downloader::copy != 0) {
-        exec_sync("copy score\\" + name + ".bdb dl\\");
+        fs::copySync(path::join("score", name + ".bdb"), path::join("dl", name + ".bdb"));
       }
 
     }
@@ -530,29 +526,19 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
     printf("\n");
 
     if (strcmp((char*)data, "acb") == 0) {
-      exec_sync("ren dl\\" + name + ". " + name + ".acb");
+      fs::renameSync(path::join("dl", name), path::join("dl", name + ".acb"));
       printf("Extracting ACB...\n");
       extract_acb("dl\\" + name + ".acb");
-      exec_sync("dir /a-d /b dl\\_acb_" + name + ".acb\\*.hca>dl\\_acb_" + name + ".acb\\hcafiles.txt");
+      Array<String> hcaFile = fs::readdirSync(path::join("dl", String("_acb_") + name + ".acb"));
 
-      string hcaFile[300];
-      int i = 0;
-      ifstream infile;
-      infile.open("dl\\_acb_" + name + ".acb\\hcafiles.txt", ios::in);
-      while (!infile.eof()) {
-        getline(infile, hcaFile[i], '\n');
-        i++;
-      }
-      infile.close();
-
-      for (int x = 0; x < i - 1; x++) {
-        hcadec("dl\\_acb_" + name + ".acb\\" + hcaFile[x]);
-        string fn = hcaFile[x].substr(0, hcaFile[x].find_last_of("."));
+      for (int x = 0; x < hcaFile.length(); x++) {
+        hcadec("dl\\_acb_" + name + ".acb\\" + hcaFile[x].toCppString());
+        string fn = hcaFile[x].substring(0, hcaFile[x].lastIndexOf(".")).toCppString();
         if (Downloader::mp3 != 0) {
           wav2mp3(std::string("dl\\_acb_") + name + ".acb\\" + fn + ".wav", std::string("dl\\") + fn + ".mp3");
         }
         else {
-          exec_sync("move dl\\_acb_" + name + ".acb\\" + fn + ".wav dl\\");
+          fs::renameSync(path::join("dl", String("_acb_") + name + ".acb", fn + ".wav"), path::join("dl", fn + ".wav"));
         }
       }
       fs::removeSync(path::join("dl", String("_acb_") + name + ".acb"));
@@ -570,11 +556,11 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
       lz4dec("dl\\" + name, "mdb");
       fs::removeSync(path::join("dl", name));
     }
-    exec_sync("cls");
+    clearTerminal();
     printf("%s Completed.\n\n", name.c_str());
   }
   else {
-    exec_sync("cls");
+    clearTerminal();
     printf("File exists.\n\n");
   }
   _file.close();
@@ -594,7 +580,7 @@ void read_database(sqlite3 *db, const char *sql, const char* data, char *zErrMsg
   else {
     ofstream log_txt;
     fs::mkdirsSync("log");
-    exec_sync("cls");
+    clearTerminal();
     printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
     string head = "";
     if (Downloader::auto_update == 0) {
@@ -616,9 +602,11 @@ void read_database(sqlite3 *db, const char *sql, const char* data, char *zErrMsg
 }
 
 int main(int argc, char* argv[]) {
-  exec_sync("chcp 65001");
-  exec_sync("echo off");
-  exec_sync("cls");
+#ifdef _WIN32
+  system("chcp 65001");
+  system("echo off");
+#endif // _WIN32
+  clearTerminal();
 
   if (argc == 1) {
     show_introduction();
@@ -645,7 +633,7 @@ int main(int argc, char* argv[]) {
       }
     } else {
       printf("Checking resource version...\n\n");
-      ApiClient client("775891250:910841675:600a5efd-cae5-41ff-a0c7-7deda751c5ed");
+      ApiClient client(Buffer::from("NDE3MTU2OTYyOjI5NTE3NzU5MDo3NzAyODQ1YS1mZDcwLTRkNDEtYTlmMS0zMGQ5MmJmYjA2MzE=", "base64").toString());
       nlohmann::json versionCheck = client.check();
       if (!versionCheck["error"].is_null()) {
         printf((std::string("[ERROR] ") + versionCheck["error"].get<std::string>() + "\n").c_str());
@@ -733,26 +721,16 @@ int main(int argc, char* argv[]) {
           }
           else if (fileName.substr(fileName.find_last_of(".") + 1) == "acb") {
             extract_acb(arg);
-            exec_sync("dir /a-d /b " + root + "\\_acb_" + fileName + "\\*.hca>" + root + "\\_acb_" + fileName + "\\hcafiles.txt");
+            Array<String> hcaFile = fs::readdirSync(path::join(root, String("_acb_") + fileName));
 
-            string hcaFile[300];
-            int i = 0;
-            ifstream infile;
-            infile.open(root + "\\_acb_" + fileName + "\\hcafiles.txt", ios::in);
-            while (!infile.eof()){
-              getline(infile, hcaFile[i], '\n');
-              i++;
-            }
-            infile.close();
-
-            for (int x = 0; x < i - 1; x++) {
-              hcadec(root + "\\_acb_" + fileName + "\\" + hcaFile[x]);
-              string name = hcaFile[x].substr(0, hcaFile[x].find_last_of("."));
+            for (int x = 0; x < hcaFile.length(); x++) {
+              hcadec(root + "\\_acb_" + fileName + "\\" + hcaFile[x].toCppString());
+              string name = hcaFile[x].substring(0, hcaFile[x].lastIndexOf(".")).toCppString();
               if (Downloader::mp3 != 0) {
                 wav2mp3(root + "\\_acb_" + fileName + "\\" + name + ".wav", root + "\\" + name + ".mp3");
               }
               else {
-                exec_sync("move " + root + "\\_acb_" + fileName + "\\" + name + ".wav " + root + "\\");
+                fs::renameSync(path::join(root, String("_acb_") + fileName, name + ".wav"), path::join(root, name + ".wav"));
               }
             }
             fs::removeSync(path::join(root, String("_acb_") + fileName));

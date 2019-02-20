@@ -248,6 +248,99 @@ public:
 #endif
   }
 
+  static bool renameSync(const String& source, const String& dest) {
+#ifdef _WIN32
+    String newSource = source.replace(std::regex("/"), path::sep());
+    String newDest = dest.replace(std::regex("/"), path::sep());
+
+    if (!fs::existsSync(newSource)) {
+      return false;
+    }
+
+    if (fs::existsSync(newDest)) {
+      if (!fs::renameSync(newDest, newDest + ".tmp")) {
+        return false;
+      }
+    }
+
+    int res = _wrename(newSource.toWCppString().c_str(), newDest.toWCppString().c_str());
+    if (res == 0) {
+      fs::removeSync(newDest + ".tmp");
+      return true;
+    } else {
+      fs::renameSync(newDest + ".tmp", newDest);
+      return false;
+    }
+#else
+    String newSource = source.replace(std::regex("\\"), path::sep());
+    String newDest = dest.replace(std::regex("\\"), path::sep());
+
+    if (!fs::existsSync(newSource)) {
+      return false;
+    }
+    if (fs::existsSync(newDest)) {
+      if (!fs::unlinkSync(newDest)) {
+        return false;
+      }
+    }
+
+    int res = rename(newSource.toCString(), newDest.toCString());
+    return res == 0;
+#endif
+  }
+
+  static bool copySync(const String& source, const String& dest) {
+#ifdef _WIN32
+    String newSource = source.replace(std::regex("/"), path::sep());
+    String newDest = dest.replace(std::regex("/"), path::sep());
+#else
+    String newSource = source.replace(std::regex("\\"), path::sep());
+    String newDest = dest.replace(std::regex("\\"), path::sep());
+#endif
+
+    if (!fs::existsSync(newSource)) {
+      return false;
+    }
+
+    fs::Stats sourceStat = fs::statSync(newSource);
+
+    if (fs::existsSync(newDest)) {
+      if (!fs::removeSync(newDest)) {
+        return false;
+      }
+    }
+
+    if (sourceStat.isDirectory()) {
+      Array<String> items = fs::readdirSync(newSource);
+      
+      if (!fs::mkdirsSync(newDest)) {
+        return false;
+      }
+      bool res = true;
+      for (int i = 0; i < items.length(); i++) {
+        String _source = path::join(newSource, items[i]);
+        String _dest = path::join(newDest, items[i]);
+        if (!fs::copySync(_source, _dest)) res = false;
+      }
+
+      return res;
+    } else {
+      FILE* s = fs::openSync(newSource, "rb+");
+      FILE* d = fs::openSync(newDest, "wb+");
+      byte buf[8192];
+      int read;
+      while ((read = (int)fread(buf, sizeof(byte), 8192, s)) > 0) {
+        fwrite(buf, sizeof(byte), read, d);
+      }
+      fs::closeSync(s);
+      fs::closeSync(d);
+      return true;
+    }
+
+    return false;
+
+  }
+
   static bool removeSync(const String& path) {
 #ifdef _WIN32
     String newPath = path.replace(std::regex("/"), path::sep());

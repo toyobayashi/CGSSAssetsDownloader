@@ -22,4 +22,6 @@ void progress (double current, double max);
 
 bool download (std::string url, std::string path);
 
+void clearTerminal();
+
 #endif // !__DOWNLOAD_H__

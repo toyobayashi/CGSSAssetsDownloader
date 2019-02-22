@@ -258,6 +258,9 @@ public:
     }
 
     if (fs::existsSync(newDest)) {
+      if (fs::statSync(newDest).isDirectory()) {
+        return false;
+      }
       if (!fs::renameSync(newDest, newDest + ".tmp")) {
         return false;
       }
@@ -279,10 +282,13 @@ public:
       return false;
     }
     if (fs::existsSync(newDest)) {
-      if (!fs::unlinkSync(newDest)) {
+      if (fs::statSync(newDest).isDirectory()) {
         return false;
       }
+      if (!fs::renameSync(newDest, newDest + ".tmp")) {
+        return false;
     }
+  }
 
     int res = rename(newSource.toCString(), newDest.toCString());
     return res == 0;
@@ -302,13 +308,15 @@ public:
       return false;
     }
 
-    fs::Stats sourceStat = fs::statSync(newSource);
-
     if (fs::existsSync(newDest)) {
-      if (!fs::removeSync(newDest)) {
-        return false;
+      if (!fs::statSync(newDest).isDirectory()) {
+        if (!fs::removeSync(newDest)) {
+          return false;
+        }
       }
     }
+
+    fs::Stats sourceStat = fs::statSync(newSource);
 
     if (sourceStat.isDirectory()) {
       Array<String> items = fs::readdirSync(newSource);

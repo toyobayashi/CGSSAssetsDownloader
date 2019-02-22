@@ -209,44 +209,15 @@ public:
     return -1 != indexOf(element);
   }
 
-  void forEach(void (*callback)(T&)) {
-    for (int i = 0; i < _value.size(); i++) {
-      callback(_value[i]);
-    }
-  }
-
-  void forEach(void (*callback)(T&, int)) {
-    for (int i = 0; i < _value.size(); i++) {
-      callback(_value[i], i);
-    }
-  }
-
-  void forEach(void (*callback)(T&, int, Array&)) {
+  template <typename F>
+  void forEach(F callback) {
     for (int i = 0; i < _value.size(); i++) {
       callback(_value[i], i, (*this));
     }
   }
 
-  template <typename U>
-  Array<U> map(U (*callback)(T&)) {
-    Array<U> res = {};
-    for (int i = 0; i < _value.size(); i++) {
-      res.push(callback(_value[i]));
-    }
-    return res;
-  }
-
-  template <typename U>
-  Array<U> map(U (*callback)(T&, int)) {
-    Array<U> res = {};
-    for (int i = 0; i < _value.size(); i++) {
-      res.push(callback(_value[i], i));
-    }
-    return res;
-  }
-
-  template <typename U>
-  Array<U> map(U (*callback)(T&, int, Array&)) {
+  template <typename U, typename F>
+  Array<U> map(F callback) {
     Array<U> res = {};
     for (int i = 0; i < _value.size(); i++) {
       res.push(callback(_value[i], i, (*this)));

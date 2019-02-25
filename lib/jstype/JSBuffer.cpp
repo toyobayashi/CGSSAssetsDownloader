@@ -45,6 +45,13 @@ Buffer::Buffer(const Buffer& buffer) {
   this->_length = length;
 }
 
+Buffer::Buffer(Buffer&& buffer) {
+  _buffer = buffer._buffer;
+  _length = buffer._length;
+  buffer._buffer = nullptr;
+  buffer._length = 0;
+}
+
 Buffer::Buffer(const String& str) {
   const char* buf = str.toCString();
   const int length = str.byteLength();

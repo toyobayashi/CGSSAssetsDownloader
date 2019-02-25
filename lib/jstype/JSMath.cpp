@@ -9,6 +9,12 @@ double Math::random() {
   return _u(_e);
 }
 
-int Math::floorA(double value) {
-  return static_cast<int>(floor(value));
+int64_t Math::floorA(double value) {
+  return (int64_t)floor(value);
+}
+int64_t Math::roundA(double value) {
+  return (int64_t)round(value);
+}
+int64_t Math::ceilA(double value) {
+  return (int64_t)ceil(value);
 }

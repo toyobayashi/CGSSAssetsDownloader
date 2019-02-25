@@ -5,9 +5,8 @@
 #include <Windows.h>
 #endif
 
-#include <cstring>
-#include <regex>
 #include <string>
+#include <regex>
 template <typename T> class Array;
 
 class String {
@@ -19,14 +18,29 @@ class String {
   String(const std::string&);
   String(const String&);
 
+  const String& operator=(const char);
+  const String& operator=(const char*);
+  const String& operator=(const std::string&);
   const String& operator=(const String&);
 
+  bool operator==(const char) const;
+  bool operator==(const char*) const;
+  bool operator==(const std::string&) const;
   bool operator==(const String&) const;
 
+  bool operator!=(const char) const;
+  bool operator!=(const char*) const;
+  bool operator!=(const std::string&) const;
   bool operator!=(const String&) const;
 
+  String operator+(const char) const;
+  String operator+(const char*) const;
+  String operator+(const std::string&) const;
   String operator+(const String&) const;
 
+  String& operator+=(const char);
+  String& operator+=(const char*);
+  String& operator+=(const std::string&);
   String& operator+=(const String&);
 
   String operator[](int index) const;
@@ -103,7 +117,7 @@ class String {
   }
 
  private:
-  char* _value;
+  std::string _value;
 
   static int _getByteLengthOfWideChar(const wchar_t*);
   static char* _wideCharToUTF8(const wchar_t*, int);

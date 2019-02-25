@@ -27,6 +27,7 @@ class Buffer {
   byte& operator[](int);
 
   Buffer(const Buffer&);
+  Buffer(Buffer&&);
 
  private:
   Buffer();

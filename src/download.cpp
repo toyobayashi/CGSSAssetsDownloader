@@ -3,7 +3,7 @@
 #include <time.h>
 #include "./download.h"
 #include <curl.h>
-#include "../lib/jstype/fs.hpp"
+#include "../lib/jstype/fs.h"
 
 using namespace std;
 
@@ -33,57 +33,6 @@ static int getTerminalCursorPositionToRight() {
 #else
   return 5;
 #endif
-}
-
-void clearTerminal() {
-#ifdef _WIN32
-  COORD coordScreen = { 0, 0 };    // home for the cursor 
-  DWORD cCharsWritten;
-  CONSOLE_SCREEN_BUFFER_INFO csbi;
-  DWORD dwConSize;
-
-  // Get the number of character cells in the current buffer. 
-
-  if (!GetConsoleScreenBufferInfo(hOutput, &csbi)) {
-    return;
-  }
-
-  dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
-
-  // Fill the entire screen with blanks.
-
-  if (!FillConsoleOutputCharacter(hOutput,        // Handle to console screen buffer 
-    (TCHAR) ' ',     // Character to write to the buffer
-    dwConSize,       // Number of cells to write 
-    coordScreen,     // Coordinates of first cell 
-    &cCharsWritten))// Receive number of characters written
-  {
-    return;
-  }
-
-  // Get the current text attribute.
-
-  if (!GetConsoleScreenBufferInfo(hOutput, &csbi)) {
-    return;
-  }
-
-  // Set the buffer's attributes accordingly.
-
-  if (!FillConsoleOutputAttribute(hOutput,         // Handle to console screen buffer 
-    csbi.wAttributes, // Character attributes to use
-    dwConSize,        // Number of cells to set attribute 
-    coordScreen,      // Coordinates of first cell 
-    &cCharsWritten)) // Receive number of characters written
-  {
-    return;
-  }
-
-  // Put the cursor at its home coordinates.
-
-  SetConsoleCursorPosition(hOutput, coordScreen);
-#else
-  system("clear");
-#endif // _WIN32
 }
 
 void progress (double local, double current, double max, double speed) {

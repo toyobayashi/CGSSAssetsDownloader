@@ -9,7 +9,8 @@
 #include "../lib/ACBExtractor/include/ACBExtractor.h"
 #include "../lib/lame/lame.h"
 #include "ApiClient.h"
-#include "../lib/jstype/fs.hpp"
+#include "../lib/jstype/fs.h"
+#include "../lib/jstype/console.h"
 
 using namespace std;
 
@@ -192,7 +193,7 @@ void Downloader::download_single(string file) {
     sql = "SELECT 'https://asset-starlight-stage.akamaized.net/dl/resources/Generic/'||(SELECT SUBSTR(hash,0,3))||'/'||hash AS url, REPLACE(name,'.mdb','') AS filename FROM manifests WHERE name='" + file + "'";
   }
   else {
-    clearTerminal();
+    console::clear();
     printf("File name error.\n\n");
     return;
   }
@@ -202,7 +203,7 @@ void Downloader::download_single(string file) {
     rc = sqlite3_exec(db, sql.c_str(), get_single, (void*)suffixStr.c_str(), &zErrMsg);
   }
   else {
-    clearTerminal();
+    console::clear();
     printf("%s not found.\n\n", file.c_str());
   }
   is_db_ok(rc, zErrMsg);
@@ -397,7 +398,7 @@ int get_asset(void *data, int argc, char **argv, char **azColName) {
   if (!_file) {
     Downloader::update_list += name;
     Downloader::update_list += "\n";
-    clearTerminal();
+    console::clear();
     printf("Downloading: %s\n\n", name.c_str());
     progress(Downloader::current, Downloader::max);
     printf("\n\n");
@@ -556,11 +557,11 @@ int get_single(void *data, int argc, char **argv, char **azColName) {
       lz4dec("dl\\" + name, "mdb");
       fs::removeSync(path::join("dl", name));
     }
-    clearTerminal();
+    console::clear();
     printf("%s Completed.\n\n", name.c_str());
   }
   else {
-    clearTerminal();
+    console::clear();
     printf("File exists.\n\n");
   }
   _file.close();
@@ -580,7 +581,7 @@ void read_database(sqlite3 *db, const char *sql, const char* data, char *zErrMsg
   else {
     ofstream log_txt;
     fs::mkdirsSync("log");
-    clearTerminal();
+    console::clear();
     printf("%d/%d Completed.\n\n", Downloader::current, Downloader::max);
     string head = "";
     if (Downloader::auto_update == 0) {
@@ -606,7 +607,7 @@ int main(int argc, char* argv[]) {
   system("chcp 65001");
   system("echo off");
 #endif // _WIN32
-  clearTerminal();
+  console::clear();
 
   if (argc == 1) {
     show_introduction();

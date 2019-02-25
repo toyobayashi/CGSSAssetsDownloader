@@ -75,6 +75,12 @@
     <ClCompile Include="lib\jstype\path.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="lib\jstype\console.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\fs.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\sha1\sha1.h">
@@ -146,9 +152,6 @@
     <ClInclude Include="lib\lame\lame.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="lib\jstype\fs.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="lib\jstype\JSArray.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -162,6 +165,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="lib\jstype\path.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\console.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\fs.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
-#include "./JSString.h"
+#include "JSString.h"
 #include "JSArray.hpp"
-#include <iostream>
+#include <cstring>
 
 int String::_getByteLengthOfWideChar(const wchar_t* wStr) {
 #ifdef _WIN32
@@ -69,80 +69,104 @@ char* String::_wideCharToUTF8(const wchar_t* wStr, int utf8ByteLength) {
 }
 
 String::String() {
-  _value = new char[1]{ '\0' };
+  _value = "";
 }
 
 String::String(const char c) {
-  _value = new char[2]{ c, '\0' };
+  const char tmp[2] = { c, '\0' };
+  _value = tmp;
 }
 
 String::String(const char* cStr) {
-  _value = new char[strlen(cStr) + 1]{ 0 };
-  strcpy(_value, cStr);
+  _value = cStr;
 }
 
 String::String(const std::string& str) {
-  _value = new char[str.length() + 1]{ 0 };
-  strcpy(_value, str.c_str());
+  _value = str;
 }
 
 String::String(const String& str) {
-  _value = new char[strlen(str._value) + 1]{ 0 };
-  strcpy(_value, str._value);
+  _value = str._value;
 }
 
+const String& String::operator=(const char c) {
+  const char tmp[2] = { c, '\0' };
+  _value = tmp;
+  return *this;
+}
+const String& String::operator=(const char* cstr) {
+  _value = cstr;
+  return *this;
+}
+const String& String::operator=(const std::string& str) {
+  _value = str;
+  return *this;
+}
 const String& String::operator=(const String& str) {
   if (this == &str) {
     return *this;
   }
-
-  char* tmp = new (std::nothrow) char[strlen(str._value) + 1];
-  if (tmp == nullptr) {
-    return *this;
-  }
-
-  strcpy(tmp, str._value);
-
-  delete[] _value;
-  _value = tmp;
-  tmp = nullptr;
-
+  _value = str._value;
   return *this;
 }
 
+bool String::operator==(const char c) const {
+  const char tmp[2] = { c, '\0' };
+  return _value == tmp;
+}
+bool String::operator==(const char* cstr) const {
+  return _value == cstr;
+}
+bool String::operator==(const std::string& str) const {
+  return _value == str;
+}
 bool String::operator==(const String& str) const {
-  return strcmp(_value, str._value) == 0;
+  return _value == str._value;
 }
 
+bool String::operator!=(const char c) const {
+  const char tmp[2] = { c, '\0' };
+  return _value != tmp;
+}
+bool String::operator!=(const char* cstr) const {
+  return _value != cstr;
+}
+bool String::operator!=(const std::string& str) const {
+  return _value != str;
+}
 bool String::operator!=(const String& str) const {
-  return !(*this == str);
+  return _value != str._value;
 }
 
+String String::operator+(const char c) const {
+  const char tmp[2] = { c, '\0' };
+  return _value + tmp;
+}
+String String::operator+(const char* cstr) const {
+  return _value + cstr;
+}
+String String::operator+(const std::string& str) const {
+  return _value + str;
+}
 String String::operator+(const String& str) const {
-  int totalLength =
-    static_cast<int>(strlen(_value)) + static_cast<int>(strlen(str._value));
-  char* tmp = new char[totalLength + 1]{ 0 };
-
-  strcpy(tmp, _value);
-  strcat(tmp, str._value);
-
-  String res = tmp;
-  delete[] tmp;
-  tmp = nullptr;
-  return res;
+  return _value + str._value;
 }
 
 String& String::operator+=(const String& str) {
-  int totalLength = this->byteLength() + static_cast<int>(strlen(str._value));
-  char* tmp = new char[totalLength + 1]{ 0 };
-
-  strcpy(tmp, _value);
-  strcat(tmp, str._value);
-
-  delete[] _value;
-  _value = tmp;
-  tmp = nullptr;
-
+  _value += str._value;
+  return *this;
+}
+String& String::operator+=(const char c) {
+  char tmp[2] = { c, '\0'};
+  _value += tmp;
+  return *this;
+}
+String& String::operator+=(const char* str) {
+  _value += str;
+  return *this;
+}
+String& String::operator+=(const std::string& str) {
+  _value += str;
   return *this;
 }
 
@@ -172,7 +196,7 @@ int String::charCodeAt(int index) const {
   String c = this->charAt(index);
 #ifdef _WIN32
   wchar_t wc[2] = { 0 };
-  MultiByteToWideChar(CP_UTF8, 0, c._value, -1, wc, 2);
+  MultiByteToWideChar(CP_UTF8, 0, c._value.c_str(), -1, wc, 2);
   return wc[0];
 #else
   int byteLength = c.byteLength();
@@ -203,7 +227,7 @@ String String::charAt(int index) const {
     return res;
   }
 
-  char* p = _value;
+  const char* p = _value.c_str();
   int result = 0;
   while (*p != '\0' && result < index) {
     if ((((uint8_t)*p) >> 7) == 0) {
@@ -235,13 +259,10 @@ String String::charAt(int index) const {
   }
 }
 
-String::~String() {
-  delete[] _value;
-  _value = nullptr;
-}
+String::~String() {}
 
 const char* String::toCString() const {
-  return _value;
+  return _value.c_str();
 }
 
 std::string String::toCppString() const {
@@ -250,9 +271,9 @@ std::string String::toCppString() const {
 
 int String::length() const {
 #ifdef _WIN32
-  return MultiByteToWideChar(CP_UTF8, 0, _value, -1, nullptr, 0) - 1;
+  return MultiByteToWideChar(CP_UTF8, 0, _value.c_str(), -1, nullptr, 0) - 1;
 #else
-  char* p = _value;
+  char* p = _value.c_str();
   int result = 0;
   while (*p != '\0') {
     if ((((uint8_t)*p) >> 7) == 0) {
@@ -273,7 +294,7 @@ int String::length() const {
 }
 
 int String::byteLength() const {
-  return static_cast<int>(strlen(_value));
+  return (int)_value.size();
 }
 
 String String::substring(int indexStart) const {
@@ -286,7 +307,7 @@ String String::substring(int indexStart) const {
     indexStart = 0;
   }
 
-  char* p = _value;
+  const char* p = _value.c_str();
   int result = 0;
   while (*p != '\0' && result < indexStart) {
     if ((((uint8_t)*p) >> 7) == 0) {
@@ -505,9 +526,9 @@ String String::trimLeft() const {
 
 std::wstring String::toWCppString() const {
 #ifdef _WIN32
-  int wLength = MultiByteToWideChar(CP_UTF8, 0, _value, -1, nullptr, 0);
+  int wLength = MultiByteToWideChar(CP_UTF8, 0, _value.c_str(), -1, nullptr, 0);
   wchar_t* buf = new wchar_t[wLength]{0};
-  MultiByteToWideChar(CP_UTF8, 0, _value, -1, buf, wLength);
+  MultiByteToWideChar(CP_UTF8, 0, _value.c_str(), -1, buf, wLength);
   std::wstring res = buf;
   delete[] buf;
   buf = nullptr;
@@ -516,7 +537,7 @@ std::wstring String::toWCppString() const {
   int wcharLength = this->length();
   wchar_t* buf = new wchar_t[wcharLength + 1]{0};
 
-  char* p = _value;
+  char* p = _value.c_str();
   int index = 0;
   while (*p != '\0') {
     if ((((uint8_t)*p) >> 7) == 0) {

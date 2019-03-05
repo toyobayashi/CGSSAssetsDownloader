@@ -2,3 +2,4 @@
 /Release
 *.user
 .vs/
+/src/account.h

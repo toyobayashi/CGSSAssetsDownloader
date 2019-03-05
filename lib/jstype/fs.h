@@ -3,21 +3,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <cstdio>
-#include <cstdlib>
-#include <errno.h>
 #include "JSString.h"
 #include "JSArray.hpp"
-#include "path.h"
-
-#ifdef _WIN32
-#include <direct.h>
-#include <io.h>
-#include <wchar.h>
-#else
-#include <unistd.h>
-#include <dirent.h>
-#endif
+#include "JSBuffer.h"
 
 class fs {
 private:
@@ -80,6 +68,10 @@ public:
   static Array<String> readdirSync(const String& path);
   static FILE* openSync(const String&, const String&);
   static int closeSync(FILE*);
+  static String readFileSync(const String&, const String& encoding);
+  static Buffer readFileSync(const String&);
+  static bool writeFileSync(const String&, const String&);
+  static bool writeFileSync(const String&, const Buffer&);
 };
 
 #endif // !__FS_H__

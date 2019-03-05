@@ -2,6 +2,7 @@
 #define __JS_BUFFER_H__
 
 #include "JSString.h"
+#include "JSArray.hpp"
 #include <vector>
 
 typedef unsigned char byte;
@@ -9,8 +10,10 @@ typedef unsigned char byte;
 class Buffer {
  public:
   virtual ~Buffer();
-  static Buffer from(const Buffer&);
   static Buffer alloc(int);
+  static Buffer from(Buffer&&);
+  static Buffer from(const Buffer&);
+  static Buffer from(const Array<byte>&);
   static Buffer from(const byte*, int);
   static Buffer from(const String&);
   static Buffer from(const String&, const String&);
@@ -32,6 +35,7 @@ class Buffer {
  private:
   Buffer();
   Buffer(int);
+  Buffer(const Array<byte>&);
   Buffer(const byte*, int);
   Buffer(const String&);
   Buffer(const String&, const String&);

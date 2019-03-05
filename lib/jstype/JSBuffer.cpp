@@ -1,5 +1,5 @@
 #include "JSBuffer.h"
-#include "../base64/b64.h"
+#include "base64/b64.h"
 
 char Buffer::_map[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                          '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -17,6 +17,19 @@ Buffer::Buffer() {
 Buffer::Buffer(int size) {
   _buffer = new byte[size]{0};
   _length = size;
+}
+
+Buffer::Buffer(const Array<byte>& arr) {
+  int len = arr.length();
+  if (len == 0) {
+    _buffer = nullptr;
+  } else {
+    _buffer = new byte[len]{ 0 };
+    for (int i = 0; i < len; i++) {
+      _buffer[i] = arr[i];
+    }
+  }
+  _length = len;
 }
 
 Buffer::Buffer(const byte* buf, int size) {
@@ -86,7 +99,7 @@ Buffer::Buffer(const String& str, const String& encoding) {
     const int length = byteLength / 2;
     _buffer = new byte[length]{0};
     for (int i = 0; i < length; i++) {
-      _buffer[i] = (byte)strtol(str.substring(i * 2, (i * 2) + 2).toCString(), NULL, 16);
+      _buffer[i] = (byte)strtol(str.substring(i * 2, (i * 2) + 2).toCString(), nullptr, 16);
     }
     _length = length;
 
@@ -106,7 +119,15 @@ Buffer Buffer::from(const String& str) {
   return str;
 }
 
+Buffer Buffer::from(const Array<byte>& arr) {
+  return arr;
+}
+
 Buffer Buffer::from(const Buffer& buffer) {
+  return buffer;
+}
+
+Buffer Buffer::from(Buffer&& buffer) {
   return buffer;
 }
 
@@ -117,10 +138,6 @@ Buffer Buffer::from(const byte* buf, int size) {
 Buffer Buffer::from(const String& str, const String& encoding) {
   return Buffer(str, encoding);
 }
-
-// Buffer Buffer::from(const byte* buf) {
-//   return buf;
-// }
 
 Buffer Buffer::alloc(int size) {
   return size;

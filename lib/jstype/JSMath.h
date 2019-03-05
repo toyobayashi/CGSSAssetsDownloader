@@ -5,9 +5,9 @@
 class Math {
  public:
   static double random();
-  static int64_t floorA(double);
-  static int64_t ceilA(double);
-  static int64_t roundA(double);
+  static int64_t floor(double);
+  static int64_t ceil(double);
+  static int64_t round(double);
  private:
   Math();
   static std::random_device _rd;

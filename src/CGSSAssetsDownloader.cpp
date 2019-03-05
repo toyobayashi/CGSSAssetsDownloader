@@ -11,6 +11,8 @@
 #include "ApiClient.h"
 #include "../lib/jstype/fs.h"
 #include "../lib/jstype/console.h"
+#include "../lib/jstype/path.h"
+#include "./account.h"
 
 using namespace std;
 
@@ -634,7 +636,7 @@ int main(int argc, char* argv[]) {
       }
     } else {
       printf("Checking resource version...\n\n");
-      ApiClient client(Buffer::from("NDE3MTU2OTYyOjI5NTE3NzU5MDo3NzAyODQ1YS1mZDcwLTRkNDEtYTlmMS0zMGQ5MmJmYjA2MzE=", "base64").toString());
+      ApiClient client(__ACCOUNT_H__);
       nlohmann::json versionCheck = client.check();
       if (!versionCheck["error"].is_null()) {
         printf((std::string("[ERROR] ") + versionCheck["error"].get<std::string>() + "\n").c_str());

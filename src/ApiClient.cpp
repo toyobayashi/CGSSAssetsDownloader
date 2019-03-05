@@ -257,7 +257,7 @@ int ApiClient::ord(const String& str) {
 String ApiClient::createRandomNumberString(int n) {
   String res = "";
   for (int i = 0; i < n; i++) {
-    res += std::to_string(Math::floorA(10 * Math::random()));
+    res += std::to_string(Math::floor(10 * Math::random()));
   }
   return res;
 }
@@ -288,7 +288,7 @@ String ApiClient::_xFFFF32() {
   out << std::hex;
 
   for (int i = 0; i < 32; i++) {
-    out << Math::floorA(65536 * Math::random());
+    out << Math::floor(65536 * Math::random());
   }
   return os.str();
 }

@@ -28,9 +28,12 @@ int String::_getByteLengthOfWideChar(const wchar_t* wStr) {
 #endif
 }
 
-char* String::_wideCharToUTF8(const wchar_t* wStr) {
+String String::fromWideChar(const wchar_t* wStr) {
   int utf8ByteLength = String::_getByteLengthOfWideChar(wStr);
-  return String::_wideCharToUTF8(wStr, utf8ByteLength);
+  char* buf = String::_wideCharToUTF8(wStr, utf8ByteLength);
+  String res = buf;
+  delete[] buf;
+  return res;
 }
 
 char* String::_wideCharToUTF8(const wchar_t* wStr, int utf8ByteLength) {
@@ -136,6 +139,84 @@ bool String::operator!=(const std::string& str) const {
 }
 bool String::operator!=(const String& str) const {
   return _value != str._value;
+}
+
+bool String::operator<(const char c) const {
+  const char tmp[2] = { c, '\0' };
+  return _value < tmp;
+}
+bool String::operator<(const char* cstr) const {
+  return _value < cstr;
+}
+bool String::operator<(const std::string& str) const {
+  return _value < str;
+}
+bool String::operator<(const String& str) const {
+  return _value < str._value;
+}
+bool String::operator<(long v) const {
+  return strtol(_value.c_str(), nullptr, 10) < v;
+}
+bool String::operator<(double v) const {
+  return strtod(_value.c_str(), nullptr) < v;
+}
+
+bool String::operator<=(const char c) const {
+  const char tmp[2] = { c, '\0' };
+  return _value <= tmp;
+}
+bool String::operator<=(const char* cstr) const {
+  return _value <= cstr;
+}
+bool String::operator<=(const std::string& str) const {
+  return _value <= str;
+}
+bool String::operator<=(const String& str) const {
+  return _value <= str._value;
+}
+bool String::operator<=(long v) const {
+  return strtol(_value.c_str(), nullptr, 10) <= v;
+}
+bool String::operator<=(double v) const {
+  return strtod(_value.c_str(), nullptr) <= v;
+}
+
+bool String::operator>(const char c) const {
+  return (!(*this <= c));
+}
+bool String::operator>(const char* cstr) const {
+  return (!(*this <= cstr));
+}
+bool String::operator>(const std::string& str) const {
+  return (!(*this <= str));
+}
+bool String::operator>(const String& str) const {
+  return (!(*this <= str));
+}
+bool String::operator>(long v) const {
+  return (!(*this <= v));
+}
+bool String::operator>(double v) const {
+  return (!(*this <= v));
+}
+
+bool String::operator>=(const char c) const {
+  return (!(*this < c));
+}
+bool String::operator>=(const char* cstr) const {
+  return (!(*this < cstr));
+}
+bool String::operator>=(const std::string& str) const {
+  return (!(*this < str));
+}
+bool String::operator>=(const String& str) const {
+  return (!(*this < str));
+}
+bool String::operator>=(long v) const {
+  return (!(*this < v));
+}
+bool String::operator>=(double v) const {
+  return (!(*this < v));
 }
 
 String String::operator+(const char c) const {
@@ -524,7 +605,7 @@ String String::trimLeft() const {
   return replace(std::regex("^[\\s\\xA0]+"), "");
 }
 
-std::wstring String::toWCppString() const {
+std::wstring String::toCppWString() const {
 #ifdef _WIN32
   int wLength = MultiByteToWideChar(CP_UTF8, 0, _value.c_str(), -1, nullptr, 0);
   wchar_t* buf = new wchar_t[wLength]{0};

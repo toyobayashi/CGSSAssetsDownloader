@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdlib>
 #include "JSString.h"
+#include "JSBuffer.h"
 #include <map>
 
 #ifdef _WIN32
@@ -20,13 +21,16 @@
 #endif
 
 class console {
-public:
+  public:
   virtual ~console();
 
   static void write(char);
+  static void write(bool);
   static void write(const char*);
   static void write(const std::string&);
   static void write(const String&);
+  static void write(const Array<String>&);
+  static void write(const Buffer&);
 
   template <typename T>
   static void write(const T& arg) {
@@ -36,7 +40,7 @@ public:
   template <typename... Args>
   static void write(const String& arg, Args... args) {
 #ifdef _WIN32
-    char* buf = _wideCharToMultiByteACP(arg.toWCppString());
+    char* buf = _wideCharToMultiByteACP(arg.toCppWString());
     printf(buf, args...);
     delete[] buf;
 #else
@@ -66,9 +70,12 @@ public:
   }
 
   static void warn(char);
+  static void warn(bool);
   static void warn(const char*);
   static void warn(const std::string&);
   static void warn(const String&);
+  static void warn(const Array<String>&);
+  static void warn(const Buffer&);
 
   template <typename T>
   static void warn(const T& arg) {
@@ -84,8 +91,8 @@ public:
   template <typename... Args>
   static void warn(const String& arg, Args... args) {
 #ifdef _WIN32
-    char* buf = _wideCharToMultiByteACP(arg.toWCppString());
-    char* res = new char[strlen(buf) + 2]{ 0 };
+    char* buf = _wideCharToMultiByteACP(arg.toCppWString());
+    char* res = new char[strlen(buf) + 2]{0};
     sprintf(res, buf, args...);
     WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
     std::cerr << res << std::endl;
@@ -93,17 +100,20 @@ public:
     delete[] res;
     delete[] buf;
 #else
-    char* res = new char[arg.byteLength() + 2]{ 0 };
+    char* res = new char[arg.byteLength() + 2]{0};
     sprintf(res, arg.toCString(), args...);
-    std::cerr << COLOR_YELLOW_BRIGHT << res << COLOR_RESET << std::endl;
+    std::cerr << COLOR_YELLOW_BRIGHT << res << COLOR_RESET  << std::endl;
     delete[] res;
 #endif
   }
 
   static void error(char);
+  static void error(bool);
   static void error(const char*);
   static void error(const std::string&);
+  static void error(const Array<String>&);
   static void error(const String&);
+  static void error(const Buffer&);
 
   template <typename T>
   static void error(const T& arg) {
@@ -119,8 +129,8 @@ public:
   template <typename... Args>
   static void error(const String& arg, Args... args) {
 #ifdef _WIN32
-    char* buf = _wideCharToMultiByteACP(arg.toWCppString());
-    char* res = new char[strlen(buf) + 2]{ 0 };
+    char* buf = _wideCharToMultiByteACP(arg.toCppWString());
+    char* res = new char[strlen(buf) + 2]{0};
     sprintf(res, buf, args...);
     WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
     std::cerr << res << std::endl;
@@ -128,9 +138,9 @@ public:
     delete[] res;
     delete[] buf;
 #else
-    char* res = new char[arg.byteLength() + 2]{ 0 };
+    char* res = new char[arg.byteLength() + 2]{0};
     sprintf(res, arg.toCString(), args...);
-    std::cerr << COLOR_RED_BRIGHT << res << COLOR_RESET << std::endl;
+    std::cerr << COLOR_RED_BRIGHT << res << COLOR_RESET  << std::endl;
     delete[] res;
 #endif
   }
@@ -150,8 +160,7 @@ private:
   static WORD _setConsoleTextAttribute(HANDLE, WORD);
 #endif
 
-  static std::map<std::string, double> _timemap;
-  static double _getTime();
+  static std::map<std::string, long long> _timemap;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "./download.h"
 #include <curl.h>
 #include "../lib/jstype/fs.h"
+#include "../lib/jstype/console.h"
 
 using namespace std;
 
@@ -172,6 +173,14 @@ bool download (string url, string path) {
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &info);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+  console::log(String("GET ") + url + " HTTP/1.1\n");
+  struct curl_slist* ph = headers;
+  while (ph != NULL) {
+    console::log(ph->data);
+    ph = ph->next;
+  }
+  console::log("");
 
   CURLcode code = curl_easy_perform(curl);
 

@@ -1,13 +1,8 @@
 #include "console.h"
+#include "Date.h"
 #include <cmath>
 
-#ifndef _WIN32
-#include <sys/times.h>
-#else
-#define EPOCHFILETIME (116444736000000000UL)
-#endif
-
-std::map<std::string, double> console::_timemap;
+std::map<std::string, long long> console::_timemap;
 
 #ifdef _WIN32
 HANDLE console::_consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -70,9 +65,11 @@ void console::clear() {
 #endif
 }
 
+console::~console() {}
+
 void console::write(const char* arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   printf(buf);
   delete[] buf;
 #else
@@ -80,9 +77,13 @@ void console::write(const char* arg) {
 #endif
 }
 
+void console::write(bool arg) {
+  printf(arg ? "true" : "false");
+}
+
 void console::write(char arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   printf(buf);
   delete[] buf;
 #else
@@ -92,7 +93,7 @@ void console::write(char arg) {
 
 void console::write(const std::string& arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   printf(buf);
   delete[] buf;
 #else
@@ -102,7 +103,7 @@ void console::write(const std::string& arg) {
 
 void console::write(const String& arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(arg.toWCppString());
+  char* buf = _wideCharToMultiByteACP(arg.toCppWString());
   printf(buf);
   delete[] buf;
 #else
@@ -110,9 +111,36 @@ void console::write(const String& arg) {
 #endif
 }
 
+void console::write(const Array<String>& arr) {
+  printf("[ ");
+  int len = arr.length();
+  if (len >= 1) {
+    write(String("\"") + arr[0] + "\"");
+    for (int i = 1; i < len; i++) {
+      write(String(", ") + "\"" + arr[i] + "\"");
+    }
+  }
+  printf(" ]");
+}
+
+void console::write(const Buffer& buf) {
+  const String& hex = buf.toString("hex");
+  int len = hex.byteLength();
+  printf("<Buffer ");
+  if (len >= 2) {
+    String res = hex.substring(0, 2);
+    for (int i = 2; i < len; i += 2) {
+      res += " ";
+      res += hex.substring(i, i + 2);
+    }
+    printf(res.toCString());
+  }
+  printf(">");
+}
+
 void console::warn(const char* arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -124,7 +152,7 @@ void console::warn(const char* arg) {
 
 void console::warn(char arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -134,9 +162,19 @@ void console::warn(char arg) {
 #endif
 }
 
+void console::warn(bool arg) {
+#ifdef _WIN32
+  WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
+  std::cerr << (arg ? "true" : "false") << std::endl;
+  _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
+#else
+  std::cerr << COLOR_YELLOW_BRIGHT << (arg ? "true" : "false") << COLOR_RESET << std::endl;
+#endif
+}
+
 void console::warn(const std::string& arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -148,7 +186,7 @@ void console::warn(const std::string& arg) {
 
 void console::warn(const String& arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(arg.toWCppString());
+  char* buf = _wideCharToMultiByteACP(arg.toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -158,9 +196,60 @@ void console::warn(const String& arg) {
 #endif
 }
 
+void console::warn(const Array<String>& arr) {
+#ifdef _WIN32
+  WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
+#else
+  std::cerr << COLOR_YELLOW_BRIGHT;
+#endif
+  std::cerr << "[ ";
+  int len = arr.length();
+  if (len >= 1) {
+    String res = String("\"") + arr[0] + "\"";
+    for (int i = 1; i < len; i++) {
+      res += ", ";
+      res += (String("\"") + arr[i] + "\"");
+    }
+    char* buf = _wideCharToMultiByteACP(res.toCppWString());
+    std::cerr << buf;
+    delete[] buf;
+  }
+  std::cerr << " ]" << std::endl;
+#ifdef _WIN32
+  _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
+#else
+  std::cerr << COLOR_RESET;
+#endif
+}
+
+void console::warn(const Buffer& buf) {
+  const String& hex = buf.toString("hex");
+  int len = hex.byteLength();
+#ifdef _WIN32
+  WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_YELLOW_BRIGHT);
+#else
+  std::cerr << COLOR_YELLOW_BRIGHT;
+#endif
+  std::cerr << "<Buffer ";
+  if (len >= 2) {
+    String res = hex.substring(0, 2);
+    for (int i = 2; i < len; i += 2) {
+      res += " ";
+      res += hex.substring(i, i + 2);
+    }
+    std::cerr << res.toCppString();
+  }
+  std::cerr << ">" << std::endl;
+#ifdef _WIN32
+  _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
+#else
+  std::cerr << COLOR_RESET;
+#endif
+}
+
 void console::error(const char* arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -170,9 +259,19 @@ void console::error(const char* arg) {
 #endif
 }
 
+void console::error(bool arg) {
+#ifdef _WIN32
+  WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
+  std::cerr << (arg ? "true" : "false") << std::endl;
+  _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
+#else
+  std::cerr << COLOR_RED_BRIGHT << (arg ? "true" : "false") << COLOR_RESET << std::endl;
+#endif
+}
+
 void console::error(char arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -184,7 +283,7 @@ void console::error(char arg) {
 
 void console::error(const std::string& arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(String(arg).toWCppString());
+  char* buf = _wideCharToMultiByteACP(String(arg).toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -196,7 +295,7 @@ void console::error(const std::string& arg) {
 
 void console::error(const String& arg) {
 #ifdef _WIN32
-  char* buf = _wideCharToMultiByteACP(arg.toWCppString());
+  char* buf = _wideCharToMultiByteACP(arg.toCppWString());
   WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
   std::cerr << buf << std::endl;
   _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
@@ -206,35 +305,69 @@ void console::error(const String& arg) {
 #endif
 }
 
-double console::_getTime() {
+void console::error(const Array<String>& arr) {
 #ifdef _WIN32
-  FILETIME ft;
-  LARGE_INTEGER li;
-  double tt = 0;
-  GetSystemTimeAsFileTime(&ft);
-  li.LowPart = ft.dwLowDateTime;
-  li.HighPart = ft.dwHighDateTime;
-  tt = (double)((li.QuadPart - EPOCHFILETIME) / 10) / 1000;
-  return tt;
+  WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
 #else
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec * 1000 + (double)tv.tv_usec / 1000;
+  std::cerr << COLOR_RED_BRIGHT;
+#endif
+  std::cerr << "[ ";
+  int len = arr.length();
+  if (len >= 1) {
+    String res = String("\"") + arr[0] + "\"";
+    for (int i = 1; i < len; i++) {
+      res += ", ";
+      res += (String("\"") + arr[i] + "\"");
+    }
+    char* buf = _wideCharToMultiByteACP(res.toCppWString());
+    std::cerr << buf;
+    delete[] buf;
+  }
+  std::cerr << " ]" << std::endl;
+#ifdef _WIN32
+  _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
+#else
+  std::cerr << COLOR_RESET;
+#endif
+}
+
+void console::error(const Buffer& buf) {
+  const String& hex = buf.toString("hex");
+  int len = hex.byteLength();
+#ifdef _WIN32
+  WORD originalAttr = _setConsoleTextAttribute(_consoleErrorHandle, COLOR_RED_BRIGHT);
+#else
+  std::cerr << COLOR_RED_BRIGHT;
+#endif
+  std::cerr << "<Buffer ";
+  if (len >= 2) {
+    String res = hex.substring(0, 2);
+    for (int i = 2; i < len; i += 2) {
+      res += " ";
+      res += hex.substring(i, i + 2);
+    }
+    std::cerr << res.toCppString();
+  }
+  std::cerr << ">" << std::endl;
+#ifdef _WIN32
+  _setConsoleTextAttribute(_consoleErrorHandle, originalAttr);
+#else
+  std::cerr << COLOR_RESET;
 #endif
 }
 
 void console::time(const String& label) {
-  _timemap[label.toCppString()] = _getTime();
+  _timemap[label.toCppString()] = Date::nowEx();
 }
 
 void console::timeEnd(const String& label) {
-  std::map<std::string, double>::iterator it = _timemap.find(label.toCppString());
+  std::map<std::string, long long>::iterator it = _timemap.find(label.toCppString());
   if (it != _timemap.end()) {
-    double end = _getTime();
-    double res = end - _timemap[label.toCppString()];
-    res = round(res * 1000) / 1000;
+    long long end = Date::nowEx();
+    long long res = end - _timemap[label.toCppString()];
+    double result = (double)res / 1000;
     char buf[16] = {0};
-    sprintf(buf, "%.3lf", res);
+    sprintf(buf, "%.3lf", result);
     log(label + ": " + buf + "ms");
     _timemap.erase(it);
   } else {

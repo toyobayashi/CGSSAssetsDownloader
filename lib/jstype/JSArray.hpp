@@ -188,7 +188,7 @@ public:
   }
 
   int indexOf(const T& element) const {
-    for (int i = 0; i < _value.size(); i++) {
+    for (int i = 0; i < (int)_value.size(); i++) {
       if (element == _value[i]) {
         return i;
       }
@@ -197,7 +197,7 @@ public:
   }
 
   int lastIndexOf(const T& element) const {
-    for (int i = _value.size() - 1; i >= 0; i--) {
+    for (int i = (int)_value.size() - 1; i >= 0; i--) {
       if (element == _value[i]) {
         return i;
       }

@@ -1,5 +1,20 @@
 #include "fs.h"
 
+#include <cstdio>
+#include <cstdlib>
+#include <errno.h>
+#include "path.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <direct.h>
+#include <io.h>
+#include <wchar.h>
+#else
+#include <unistd.h>
+#include <dirent.h>
+#endif
+
 fs::_Stats::~_Stats() {}
 
 #ifdef _WIN32
@@ -84,7 +99,7 @@ fs::Stats fs::statSync(const String& filename) {
 #ifdef _WIN32
   struct _stat info;
   String newPath = filename.replace(std::regex("/"), path::sep());
-  int res = _wstat(newPath.toWCppString().c_str(), &info);
+  int res = _wstat(newPath.toCppWString().c_str(), &info);
 #else
   struct stat info;
   String newPath = path.replace(std::regex("\\"), path::sep());
@@ -103,7 +118,7 @@ bool fs::existsSync(const String& filename) {
 #ifdef _WIN32
   struct _stat info;
   String newPath = filename.replace(std::regex("/"), path::sep());
-  int res = _wstat(newPath.toWCppString().c_str(), &info);
+  int res = _wstat(newPath.toCppWString().c_str(), &info);
 #else
   struct stat info;
   String newPath = path.replace(std::regex("\\"), path::sep());
@@ -127,7 +142,7 @@ bool fs::mkdirSync(const String& path, int mode, bool recursive) {
     if (fs::existsSync(newPath)) {
       return fs::statSync(newPath).isDirectory();
     }
-    res = _wmkdir(newPath.toWCppString().c_str());
+    res = _wmkdir(newPath.toCppWString().c_str());
 #else
     String newPath = path.replace(std::regex("\\"), path::sep());
     if (fs::existsSync(newPath)) {
@@ -176,7 +191,7 @@ bool fs::unlinkSync(const String& path) {
     return true;
   }
 
-  int res = _wunlink(newPath.toWCppString().c_str());
+  int res = _wunlink(newPath.toCppWString().c_str());
   return res == 0;
 #else
   String newPath = path.replace(std::regex("\\"), path::sep());
@@ -196,7 +211,7 @@ bool fs::rmdirSync(const String& path) {
     return true;
   }
 
-  int res = _wrmdir(newPath.toWCppString().c_str());
+  int res = _wrmdir(newPath.toCppWString().c_str());
   return res == 0;
 #else
   String newPath = path.replace(std::regex("\\"), path::sep());
@@ -227,7 +242,7 @@ bool fs::renameSync(const String& source, const String& dest) {
     }
   }
 
-  int res = _wrename(newSource.toWCppString().c_str(), newDest.toWCppString().c_str());
+  int res = _wrename(newSource.toCppWString().c_str(), newDest.toCppWString().c_str());
   if (res == 0) {
     fs::removeSync(newDest + ".tmp");
     return true;
@@ -347,7 +362,7 @@ Array<String> fs::readdirSync(const String& path) {
   intptr_t hFile;
   String newPath = path.replace(std::regex("/"), path::sep());
 
-  hFile = _wfindfirst((newPath + "\\*.*").toWCppString().c_str(), &file);
+  hFile = _wfindfirst((newPath + "\\*.*").toCppWString().c_str(), &file);
   if (hFile == -1) {
     return {};
   }
@@ -402,7 +417,7 @@ Array<String> fs::readdirSync(const String& path) {
 FILE* fs::openSync(const String& path, const String& mode) {
 #ifdef _WIN32
   String newPath = path.replace(std::regex("/"), path::sep());
-  return _wfopen(newPath.toWCppString().c_str(), mode.toWCppString().c_str());
+  return _wfopen(newPath.toCppWString().c_str(), mode.toCppWString().c_str());
 #else
   String newPath = path.replace(std::regex("\\"), path::sep());
   return fopen(newPath.toCString(), mode.toCString());
@@ -412,3 +427,67 @@ FILE* fs::openSync(const String& path, const String& mode) {
 int fs::closeSync(FILE* fp) {
   return fclose(fp);
 }
+
+String fs::readFileSync(const String& path, const String& encoding) {
+  return readFileSync(path).toString(encoding);
+}
+
+Buffer fs::readFileSync(const String& path) {
+  if (!existsSync(path)) {
+    throw std::exception((String("ENOENT: no such file or directory, open \"") + path + "\"").toCString());
+  }
+
+  fs::Stats stat = fs::statSync(path);
+  if (stat.isDirectory()) {
+    throw std::exception((String("EISDIR: illegal operation on a directory, read \"") + path + "\"").toCString());
+  }
+
+  long size = stat.size();
+  
+  FILE* fp = openSync(path, "rb");
+  if (fp == nullptr) {
+    throw std::exception((String("EBUSY: resource busy or locked, open \"") + path + "\"").toCString());
+  }
+
+  byte* buf = new byte[size]{0};
+  fread(buf, sizeof(byte), size, fp);
+  fs::closeSync(fp);
+  Buffer&& res = Buffer::from(buf, size);
+  delete[] buf;
+  return res;
+}
+
+bool fs::writeFileSync(const String& path, const Buffer& data) {
+  fs::Stats stat = fs::statSync(path);
+  if (stat.isDirectory()) {
+    return false;
+  }
+
+  FILE* fp = fs::openSync(path, "wb");
+  if (fp == nullptr) {
+    return false;
+  }
+
+  fwrite(data.buffer(), 1, data.length(), fp);
+  fs::closeSync(fp);
+  return true;
+}
+
+bool fs::writeFileSync(const String& path, const String& data) {
+  fs::Stats stat = fs::statSync(path);
+  if (stat.isDirectory()) {
+    return false;
+  }
+
+  FILE* fp = fs::openSync(path, "wb");
+  if (fp == nullptr) {
+    return false;
+  }
+
+  Buffer buf = Buffer::from(data);
+
+  fwrite(buf.buffer(), 1, buf.length(), fp);
+  fs::closeSync(fp);
+  return true;
+}
+

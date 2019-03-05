@@ -43,6 +43,44 @@ class String {
   String& operator+=(const std::string&);
   String& operator+=(const String&);
 
+  bool operator<(const char) const;
+  bool operator<(const char*) const;
+  bool operator<(const std::string&) const;
+  bool operator<(const String&) const;
+  bool operator<(long) const;
+  bool operator<(double) const;
+
+  template <typename T>
+  bool operator<(const T& _u) {
+    return false;
+  }
+
+  bool operator<=(const char) const;
+  bool operator<=(const char*) const;
+  bool operator<=(const std::string&) const;
+  bool operator<=(const String&) const;
+  bool operator<=(long) const;
+  bool operator<=(double) const;
+
+  template <typename T>
+  bool operator<=(const T& _u) {
+    return false;
+  }
+
+  bool operator>(const char) const;
+  bool operator>(const char*) const;
+  bool operator>(const std::string&) const;
+  bool operator>(const String&) const;
+  bool operator>(long) const;
+  bool operator>(double) const;
+
+  bool operator>=(const char) const;
+  bool operator>=(const char*) const;
+  bool operator>=(const std::string&) const;
+  bool operator>=(const String&) const;
+  bool operator>=(long) const;
+  bool operator>=(double) const;
+
   String operator[](int index) const;
 
   const char* toCString() const;
@@ -74,7 +112,7 @@ class String {
   String trimLeft() const;
   Array<String> split() const;
   Array<String> split(const String& separator, int limit = -1) const;
-  std::wstring toWCppString() const;
+  std::wstring toCppWString() const;
 
   template <typename T>
   String concat(const T& str) const {
@@ -116,12 +154,12 @@ class String {
     return res;
   }
 
+  static String fromWideChar(const wchar_t*);
+
  private:
   std::string _value;
-
   static int _getByteLengthOfWideChar(const wchar_t*);
   static char* _wideCharToUTF8(const wchar_t*, int);
-  static char* _wideCharToUTF8(const wchar_t*);
 };
 
 #endif  // __JS_STRING_H__

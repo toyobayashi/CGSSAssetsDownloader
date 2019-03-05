@@ -21,12 +21,6 @@
     <ClCompile Include="lib\aes\aes.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="lib\base64\decode.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\base64\encode.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="lib\md5\md5.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -81,6 +75,24 @@
     <ClCompile Include="lib\jstype\fs.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="lib\jstype\base64\decode.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\base64\encode.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\Date.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\jsprocess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\ObjectId.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\jstype\Uuid.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\sha1\sha1.h">
@@ -117,9 +129,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="lib\curl\urlapi.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\base64\b64.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="lib\aes\aes.hpp">
@@ -171,6 +180,24 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="lib\jstype\fs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\base64\b64.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\Date.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\JSObject.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\jsprocess.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\ObjectId.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\jstype\Uuid.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

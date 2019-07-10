@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CGSSAssetDownloader", "CGSSAssetDownloader.vcxproj", "{9D8C967A-CF50-4A53-9F90-5059F67F9BE9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CGSSAssetsDownloader", "CGSSAssetsDownloader.vcxproj", "{9D8C967A-CF50-4A53-9F90-5059F67F9BE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -42,8 +42,8 @@ static bool wav2mp3(std::string wavPath, std::string mp3Path) {
 
   const int CHANNEL = 2;
 
-  short int wav_buffer[WAV_SIZE * CHANNEL];
-  unsigned char mp3_buffer[MP3_SIZE];
+  short int *wav_buffer = new short int[WAV_SIZE * CHANNEL];
+  unsigned char *mp3_buffer = new unsigned char[MP3_SIZE];
 
   lame_t lame = lame_init();
   lame_set_in_samplerate(lame, 44100);
@@ -65,6 +65,8 @@ static bool wav2mp3(std::string wavPath, std::string mp3Path) {
     fwrite(mp3_buffer, sizeof(unsigned char), static_cast<size_t>(write), mp3);
   } while (read != 0);
 
+  delete[] wav_buffer;
+  delete[] mp3_buffer;
   // lame_mp3_tags_fid(lame, mp3);
   lame_close(lame);
   fclose(mp3);
@@ -212,7 +214,7 @@ void Downloader::download_single(string file) {
 }
 
 void show_introduction() {
-  printf("CGSSAssetsDownloader VERSION 2.0.0-pre2\n\n");
+  printf("CGSSAssetsDownloader VERSION 2.0.0\n\n");
 
   printf("Usage: \n");
   printf("CGSSAssetsDownloader [-v resource_version] [-a] [-u] [-mp3]\n");
@@ -220,7 +222,7 @@ void show_introduction() {
   printf("CGSSAssetsDownloader file1 file2 file3 ...\n\n");
 
   printf("Example: \n");
-  printf("CGSSAssetsDownloader -o -bgm -u\n");
+  printf("CGSSAssetsDownloader -o bgm -u\n");
   printf("CGSSAssetsDownloader -v 10028005 -o gachaselect_30145.unity3d\n");
   printf("CGSSAssetsDownloader -v 10031250 -a -u -mp3\n");
   printf("CGSSAssetsDownloader path\\to\\NoSuffixFile path\\to\\ACBFile.acb path\\to\\HCAFile.hca ...\n\n");
@@ -318,10 +320,11 @@ void hcadec (string hcafile) {
   }
 
   printf("Decoding %s...\n", hcafile.c_str());
-  clHCA hca(ciphKey1, ciphKey2);
-  if (!hca.DecodeToWavefile(hcafile.c_str(), filenameOut, volume, mode, loop)) {
+  clHCA* hca = new clHCA(ciphKey1, ciphKey2);
+  if (!hca->DecodeToWavefile(hcafile.c_str(), filenameOut, volume, mode, loop)) {
     printf("Error: Decoding failed.\n");
   }
+  delete hca;
 }
 
 int exist(void *data, int argc, char **argv, char **azColName) {

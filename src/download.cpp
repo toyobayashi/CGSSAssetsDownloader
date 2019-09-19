@@ -131,7 +131,7 @@ bool download (string url, string path) {
   CURL* curl = curl_easy_init();
   struct curl_slist* headers = NULL;
 
-  headers = curl_slist_append(headers, "X-Unity-Version: 2017.4.2f2");
+  headers = curl_slist_append(headers, "X-Unity-Version: 2018.3.8f1");
   headers = curl_slist_append(headers, "Connection: Keep-Alive");
   headers = curl_slist_append(headers, "Accept-Encoding: gzip");
   headers = curl_slist_append(headers, "Accept: */*");

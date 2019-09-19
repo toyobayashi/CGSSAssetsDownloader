@@ -147,11 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="lib\ACBExtractor\ACBExtractor.cpp" />
-    <ClCompile Include="lib\ACBExtractor\AFSArchive.cpp" />
-    <ClCompile Include="lib\ACBExtractor\Reader.cpp" />
-    <ClCompile Include="lib\ACBExtractor\TrackList.cpp" />
-    <ClCompile Include="lib\ACBExtractor\UTFTable.cpp" />
+    <ClCompile Include="lib\acb\acb.c" />
     <ClCompile Include="lib\aes\aes.c" />
     <ClCompile Include="lib\jstype\base64\decode.c" />
     <ClCompile Include="lib\jstype\base64\encode.c" />
@@ -175,6 +171,7 @@
     <ClCompile Include="src\lz4.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\acb\acb.h" />
     <ClInclude Include="lib\aes\aes.h" />
     <ClInclude Include="lib\aes\aes.hpp" />
     <ClInclude Include="lib\curl\curl.h" />

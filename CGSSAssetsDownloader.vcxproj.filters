@@ -39,21 +39,6 @@
     <ClCompile Include="src\lz4.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="lib\ACBExtractor\ACBExtractor.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\ACBExtractor\AFSArchive.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\ACBExtractor\Reader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\ACBExtractor\TrackList.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\ACBExtractor\UTFTable.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="lib\sqlite3\sqlite3.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -91,6 +76,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="lib\jstype\Uuid.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\acb\acb.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -198,6 +186,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="lib\jstype\Uuid.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\acb\acb.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

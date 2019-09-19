@@ -6,7 +6,8 @@
 #include "./lz4.h"
 #include "./clHCA.h"
 #include "./CGSSAssetsDownloader.h"
-#include "../lib/ACBExtractor/include/ACBExtractor.h"
+// #include "../lib/ACBExtractor/include/ACBExtractor.h"
+#include "../lib/acb/acb.h"
 #include "../lib/lame/lame.h"
 #include "ApiClient.h"
 #include "../lib/jstype/fs.h"
@@ -214,7 +215,7 @@ void Downloader::download_single(string file) {
 }
 
 void show_introduction() {
-  printf("CGSSAssetsDownloader VERSION 2.0.0\n\n");
+  printf("CGSSAssetsDownloader VERSION 2.0.1\n\n");
 
   printf("Usage: \n");
   printf("CGSSAssetsDownloader [-v resource_version] [-a] [-u] [-mp3]\n");
@@ -262,14 +263,18 @@ void show_introduction() {
 }
 
 bool extract_acb (string acbFile) {
-  try {
+  acb* acbp = acb_open(acbFile.c_str());
+  int res = acb_extract(acbp, path::join(path::dirname(acbFile), String("_acb_") + path::basename(acbFile)).toCString(), nullptr);
+  acb_close(acbp);
+  return res == 0;
+  /*try {
     ACBExtractor extractor(acbFile);
     bool result = extractor.extract(nullptr);
     return result;
   } catch (const char* err) {
     printf("ACBExtractor Error: %s\n", err);
     return false;
-  }
+  }*/
 }
 
 int string_index_of (char* arr[], const char* str, int length) {

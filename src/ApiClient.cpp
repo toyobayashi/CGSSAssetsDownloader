@@ -54,7 +54,7 @@ nlohmann::json ApiClient::post(const String& path, nlohmann::json& args) {
   headers = curl_slist_append(headers, "KEYCHAIN: ");
   headers = curl_slist_append(headers, "PLATFORM-OS-VERSION: Android OS 13.3.7 / API-42 (XYZZ1Y/74726f6c6c)");
   headers = curl_slist_append(headers, (String("PARAM: ") + sha1Encrypt(_udid + _viewer + path + plain)).toCString());
-  headers = curl_slist_append(headers, "X-Unity-Version': '2017.4.2f2");
+  headers = curl_slist_append(headers, "X-Unity-Version': '2018.3.8f1");
   headers = curl_slist_append(headers, "CARRIER: google");
   headers = curl_slist_append(headers, (String("RES-VER: ") + _resVer).toCString());
   headers = curl_slist_append(headers, (String("UDID: ") + encode(_udid)).toCString());

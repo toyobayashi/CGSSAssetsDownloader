@@ -1,9 +1,9 @@
-# CGSSAssetsDownloader
+# CGSSAssetsDownloader (deprecated, use [mishiro](https://github.com/toyobayashi/mishiro) instead)
 A download tool for CGSS (IDOL MASTER CINDERELLA GIRLS STARLIGHT STAGE).
 
 [Here to download release](https://github.com/toyobayashi/CGSSAssetsDownloader/releases)  
 
-Emmmmmmmm... In fact I'm not good at programing with C++. So I recommend you to use [mishiro](https://github.com/toyobayashi/mishiro) which is my new __CGSS WINDOWS DESKTOP APPLICATION__ project programing with JavaScript. It can do the same thing or, even more.
+Due to the acb/awb format changed and I have no time to find out how to deal with this situation, this tool can not download game BGM/LIVE any more. I recommend you to use [mishiro](https://github.com/toyobayashi/mishiro) which is my new __CGSS DESKTOP APPLICATION__ project programing with TypeScript. It can do the same thing or, even more.
 
 ## Usage
 
